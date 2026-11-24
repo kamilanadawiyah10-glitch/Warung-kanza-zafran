@@ -478,10 +478,12 @@ async function speakSeq(items){const g=++spGen;stopVoice();duck(true);
   if(g!==spGen)return;await wait(it.pause==null?80:it.pause)}
  clearHi();duck(false)}
 function splitNum(it){const n=norm(it.t),m=n.match(/^(.+ puluh) (\S+)$/);return !RECD[n]&&m&&RECD[m[1]]&&RECD[m[2]]?[{...it,t:m[1],pause:30},{...it,t:m[2]}]:[it]}
-function say(x,who){if(!snd)return;speakSeq([].concat(x).map(s=>s&&typeof s==='object'?s:{t:String(s),who}).flatMap(splitNum))}
+function say(x,who){if(!snd)return Promise.resolve();return speakSeq([].concat(x).map(s=>s&&typeof s==='object'?s:{t:String(s),who}).flatMap(splitNum))}
 const ctxWho=()=>S.mode==='quiz'?HOST[S.kind]:S.phase==='order'&&S.q[S.i]?S.q[S.i].g:S.phase==='cook'?'zafran':S.phase==='bibi'?'kamila':'kanza';
 const cnt=(n,who)=>say(String(n),who||ctxWho());
-let sayT0=0;const autoSay=(t,who)=>{clearTimeout(sayT0);sayT0=setTimeout(()=>say(t,who),350)};
+let sayT0=0;function sayAfter(x,who){const p=(S.holdP||Promise.resolve()).then(()=>say(x,who));S.holdP=p;return p}
+function afterTalk(fn,ms=350){clearTimeout(sayT0);const p=S.holdP;S.holdP=null;if(p)p.then(()=>{sayT0=setTimeout(fn,150)});else sayT0=setTimeout(fn,ms)}
+const autoSay=(t,who)=>afterTalk(()=>say(t,who));
 function spellItems(words,who){const it=[];words.forEach(w=>{const lts=[...w.querySelectorAll('.lt')];lts.forEach(l=>it.push({t:LN[l.textContent]||l.textContent,el:l,pause:120,rate:.85,who}));it.push({t:lts.map(l=>l.textContent).join(''),el:w,pause:350,who})});return it}
 function orderSpeech(){const c=S.q[S.i];if(!c||S.mode!=='warung')return;const nm=P[c.g].n,words=[...bub.querySelectorAll('.wd')],who=c.g;
  const it=[{t:`Halo Kanza! Aku ${nm}.`,pause:250,who},...segOr(c.qty>1?[`Aku mau pesan ${NUMW[c.qty]} porsi`,c.d.name+'!']:[`Aku mau pesan ${c.d.name}.`],`Aku mau pesan ${c.qty>1?NUMW[c.qty]+' porsi ':''}${c.d.name}.`).map((t,i,a)=>({t,who,pause:i===a.length-1?450:120})),...spellItems(words,who)];
@@ -527,7 +529,7 @@ function overlay(title,lines){const o=document.createElement('div');o.className=
 
 /* ---------- menu ---------- */
 function homeGreet(){speakSeq([{t:'Halo! Aku Kanza.',who:'kanza',pause:150},{t:'Aku Zafran.',who:'zafran',pause:200},{t:'Mau main apa hari ini?',who:'kanza'}])}
-function stopAll(){clearInterval(S.pt);S.pt=0;clearInterval(S.tm);S.tm=0;$('#hearts').innerHTML='';document.querySelector('.ov')?.remove()}
+function stopAll(){S.holdP=null;clearInterval(S.pt);S.pt=0;clearInterval(S.tm);S.tm=0;$('#hearts').innerHTML='';document.querySelector('.ov')?.remove()}
 function home(){stopAll();S.mode='home';S.phase='home';sceneMode('warung');setCooks();guestEl.innerHTML='';hud();applyDecor();
  bubble('Halo! Kami <b>Kanza</b> dan <b>Zafran</b>. Mau main apa hari ini? <button class="say" data-act="greet" aria-label="Dengarkan">🔊</button>','cook','Kanza & Zafran');if(AC)homeGreet();
  const sg=(act,v,l,cur)=>`<button class="sg${String(cur)===String(v)?' on':''}" data-act="${act}" data-v="${v}">${l}</button>`,n=boxes();
@@ -624,7 +626,7 @@ function nextGuest(){S.phase='order';S.tries=0;const c=S.q[S.i],M=S.lvl==='mudah
  showGuest(c.g,'happy',true);hud();sfx.bell();
  const q=c.qty>1?`<span class="syl qn" data-say="${NUMW[c.qty]}">${NUMW[c.qty]}</span> porsi `:'';
  bubble(`Halo Kanza! Aku ${nm}. Aku mau pesan ${q}${sylHTML(c.d)} <button class="say" data-act="order" aria-label="Dengarkan pesanan">🔊</button>`,'guest',nm);
- clearTimeout(sayT0);sayT0=setTimeout(orderSpeech,700);
+ afterTalk(orderSpeech,700);
  render(`<h2>Baca pesanan ${nm}. Pilih menu yang benar! ${sayB('Baca pesanan '+nm+'. Pilih menu yang benar!','kanza')}</h2>
  <div class="menu">${shuffle(DISH).map(d=>`<button class="card" data-act="menu" data-v="${d.id}">${M?`<span class="big">${d.icon}</span>`:''}<b>${d.name}</b></button>`).join('')}</div><p class="fb" id="fb"></p>`)}
 
@@ -636,7 +638,7 @@ const STEPS={
  pecel:[{t:'fire',x:'Nyalakan kompornya',tool:'wajan'},{t:'hold',x:'Panaskan minyak',liq:'minyak',done:'Minyaknya panas!'},{t:'fry',x:'Goreng lelenya. Angkat saat warnanya kuning keemasan!'},{t:'tap',x:'Ulek sambal {n} kali',tool:'cobek',ic:'🪨',start:['🌶️','🍅','🧄','🌶️'],end:['.sambal'],n:[4,6],ok:'Sambalnya jadi!',fx:'thud'},{t:'tap',x:'Potong timun {n} kali',tool:'talenan',ic:'🔪',start:['🥒'],add:'.slice',n:[3,5],ok:'Timunnya sudah dipotong!',fx:'chop'},{t:'ing',x:'Tata bahan di piring',tool:'piring'}]};
 function cook(){S.phase='cook';S.tries=0;const c=S.q[S.i];
  c.steps=STEPS[c.d.id].map(s=>({...s,n:s.n?rand(s.n[0],s.n[1]):0,c:0,p:0}));c.si=0;c.pot=[];c.k={tool:'panci',fire:false,liq:{},lv:{},stuff:{}};
- const zt=`Aku Zafran. Ayo masak ${c.d.name.toLowerCase()} bareng aku!`;bubble(zt,'cook','Zafran');say(segOr(['Aku Zafran.','Ayo masak bareng aku!'],zt),'zafran');setTimeout(stepRender,2200)}
+ const zt=`Aku Zafran. Ayo masak ${c.d.name.toLowerCase()} bareng aku!`;bubble(zt,'cook','Zafran');sayAfter(segOr(['Aku Zafran.','Ayo masak bareng aku!'],zt),'zafran');setTimeout(stepRender,1200)}
 const tok=s=>s[0]==='.'?`<i class="tok ${s.slice(1)}"></i>`:`<span class="em">${s}</span>`;
 function stationHTML(){const k=S.q[S.i].k,t=k.tool,stove=t==='panci'||t==='wajan',lq=k.liq[t]||'';
  return `<div class="kit-wall"><span class="shelf3">🧂 🫙 🍯</span></div><div class="chef" id="chef">${av('zafran')}</div>`
@@ -671,7 +673,7 @@ function stepRender(){const c=S.q[S.i],k=c.k,st=c.steps[c.si],M=S.lvl==='mudah';
  if(st.t==='hold')bindHold(st);
  if(st.t==='stir')bindStir();
  if(st.t==='fry')startFry(st)}
-function nextStep(msg){const c=S.q[S.i];loopStop();const ch=$('#chef');if(ch){ch.classList.remove('dance');void ch.offsetWidth;ch.classList.add('dance')}sfx.ok();fb(msg,'good');say(msg,'zafran');lock();setTimeout(()=>{c.si++;if(c.si<c.steps.length)stepRender();else{star(S.tries===0);ready()}},1200)}
+function nextStep(msg){const c=S.q[S.i];loopStop();const ch=$('#chef');if(ch){ch.classList.remove('dance');void ch.offsetWidth;ch.classList.add('dance')}sfx.ok();fb(msg,'good');sayAfter(msg,'zafran');lock();setTimeout(()=>{c.si++;if(c.si<c.steps.length)stepRender();else{star(S.tries===0);ready()}},1200)}
 function bindHold(st){const b=$('#holdb'),f=$('#barf'),oil=st.liq==='minyak',stop=()=>{clearInterval(S.tm);S.tm=0;loopStop()};let tick=0;
  const step=d=>{st.p=Math.min(100,st.p+d);f.style.width=st.p+'%';setBubbles(Math.floor(st.p/12));if(!oil&&st.p>30&&tick++%3===0)sfx.bubble();if(st.p>=100){stop();nextStep(st.done)}};
  b.addEventListener('pointerdown',e=>{e.preventDefault();if(S.tm||st.p>=100)return;if(oil)loopStart(3200,'highpass',.035);else tone(140,.3,'sine',0,.06);S.tm=setInterval(()=>step(2.5),50)});
@@ -713,7 +715,7 @@ function pay(){S.phase='pay';S.tries=0;const c=S.q[S.i],M=S.lvl==='mudah',p=c.d.
 function payHint(){const c=S.q[S.i],h=$('#hintbox');if(!h)return;const p=c.d.price;
  if(c.qty>1)h.innerHTML=`<p class="sub">Petunjuk: ini ${NUMW[c.qty]} kelompok koin. Hitung semuanya!</p>`+Array(c.qty).fill(`<div class="coins">${coins(p)}</div>`).join('');
  else h.innerHTML=`<p class="sub">Petunjuk: ada 10 koin, ${p} koin dipakai bayar. Sisanya berapa?</p><div class="coins">${coins(10,p)}</div>`}
-function paid(){const c=S.q[S.i],nm=P[c.g].n,tip=hearts(c)>=3;clearInterval(S.pt);S.pt=0;S.earn.push(c.tot);fb(tip?`Betul! ${nm} kasih tip! +1 ★`:'Betul! Hebat!','good');if(tip){bubble('Ini tip buat kamu, Kanza!','guest',nm);setTimeout(addStar,600)}say([...(tip?[{t:'Ini tip buat kamu, Kanza!',who:c.g,pause:250}]:[]),...segOr(['Betul! Terima kasih. Datang lagi, ya!'],['Betul!',`Terima kasih, ${nm}.`,'Datang lagi, ya!'])],'kanza');setTimeout(()=>{$('#hearts').innerHTML='';
+function paid(){const c=S.q[S.i],nm=P[c.g].n,tip=hearts(c)>=3;clearInterval(S.pt);S.pt=0;S.earn.push(c.tot);fb(tip?`Betul! ${nm} kasih tip! +1 ★`:'Betul! Hebat!','good');if(tip){bubble('Ini tip buat kamu, Kanza!','guest',nm);setTimeout(addStar,600)}S.holdP=null;sayAfter([...(tip?[{t:'Ini tip buat kamu, Kanza!',who:c.g,pause:250}]:[]),...segOr(['Betul! Terima kasih. Datang lagi, ya!'],['Betul!',`Terima kasih, ${nm}.`,'Datang lagi, ya!'])],'kanza');setTimeout(()=>{$('#hearts').innerHTML='';
  bubble(`Terima kasih, ${nm}! Datang lagi, ya.`,'cook','Kanza');guestEl.classList.add('leave');
  setTimeout(()=>{S.i++;const left=S.q.length-S.i;if(left===0||(S.i-S.last>=3&&left>=2))bibi();else nextGuest()},800)},900)}
 function bibi(){S.phase='bibi';S.tries=0;hud();const M=S.lvl==='mudah',grp=S.q.slice(S.last,S.i),e=S.earn.slice(S.last,S.i);S.bibiAns=e.reduce((a,b)=>a+b,0);
@@ -723,7 +725,7 @@ function bibi(){S.phase='bibi';S.tries=0;hud();const M=S.lvl==='mudah',grp=S.q.s
  render(`<h2>Setor uang ke Bibi Kamila ${sayB(s,'kamila')}</h2><p class="sub">Uang dari ${grp.length} pembeli${M?'. Ketuk koinnya untuk menghitung!':':'}</p>
  <div class="earn">${grp.map((c,i)=>`<div class="eg"><div class="eh">${av(c.g)}<b>${P[c.g].n}</b><span>${e[i]} ribu</span></div>${M?`<div class="coins">${coins(e[i])}</div>`:''}</div>`).join('')}</div>
  <h3>${e.join(' + ')} = ? ribu</h3>${choices(S.bibiAns,'ribu')}<p class="fb" id="fb"></p>`)}
-function bibiDone(){S.last=S.i;const t=`Hebat, Kanza! Uangnya pas ${S.bibiAns} ribu. Terima kasih sudah jujur!`;bubble(t,'guest','Bibi Kamila');say(['Hebat, Kanza! Uangnya pas',String(S.bibiAns),'ribu.','Terima kasih sudah jujur!'],'kamila');
+function bibiDone(){S.last=S.i;const t=`Hebat, Kanza! Uangnya pas ${S.bibiAns} ribu. Terima kasih sudah jujur!`;bubble(t,'guest','Bibi Kamila');S.holdP=null;sayAfter(['Hebat, Kanza! Uangnya pas',String(S.bibiAns),'ribu.','Terima kasih sudah jujur!'],'kamila');
  if(S.i<S.q.length)setTimeout(()=>{guestEl.classList.add('leave');setTimeout(nextGuest,800)},2600);
  else setTimeout(()=>levelDone('warung',[`Pembeli: ${S.q.length} orang`,`Uang hari ini: ${S.earn.reduce((a,b)=>a+b,0)} ribu`,`Bintang didapat: ★ ${S.today}`]),2200)}
 
@@ -764,15 +766,15 @@ function genAngka(L){const M=L<=25,p=pL(),out=[],top=M?Math.min(20,3+L):0,nq=L%3
  if(L%3===0){const max=M?10:20+Math.round(p*30)-(20+Math.round(p*30))%5;out.push({t:'rahasia',max,secret:rand(1,max),par:M?4:6,prompt:`Angka rahasia dari 1 sampai ${max}. Tebak!`,say:`Fathir punya angka rahasia dari satu sampai ${terbilang(max)}. Ayo tebak!`,board:`<div class="bd-big">?</div><div class="bd-small" id="hist">Tebak angka rahasiaku!</div>`})}
  return out}
 function quiz(kind){stopAll();S.combo=0;S.mode='quiz';S.kind=kind;S.qi=0;S.today=0;S.phase='quiz';sceneMode('quiz');const M=S.lvl==='mudah';
- S.qs=(kind==='huruf'?genHuruf:kind==='kata'?genKata:genAngka)(S.L);const h=HOST[kind];showGuest(h,'happy',true);sfx.bell();const gt=`Halo! Aku ${P[h].n}. Ayo main ${QNAME[kind].toLowerCase()} bareng aku!`;bubble(gt,'guest',P[h].n);say(gt,h);qRender(2600)}
+ S.qs=(kind==='huruf'?genHuruf:kind==='kata'?genKata:genAngka)(S.L);const h=HOST[kind];showGuest(h,'happy',true);sfx.bell();const gt=`Halo! Aku ${P[h].n}. Ayo main ${QNAME[kind].toLowerCase()} bareng aku!`;bubble(gt,'guest',P[h].n);S.holdP=null;sayAfter(gt,h);qRender(400)}
 function qRender(delay){const q=S.qs[S.qi];S.tries=0;hud();board.innerHTML=q.board;let a='';
  if(q.t==='choice')a=`<div class="opts ${q.cls}">${q.opts.map((o,i)=>`<button class="opt" data-act="qans" data-v="${i}">${q.fmt?q.fmt(o):o}</button>`).join('')}</div>`;
  if(q.t==='susun'){q.fill=[];a=`<div class="slots" id="slots"></div><div class="tiles">${q.tiles.map((t,i)=>`<button class="tile" data-act="tile" data-v="${i}">${t}</button>`).join('')}</div>`}
  if(q.t==='rahasia'){q.g=[];q.lo=1;q.hi=q.max;a=`<div class="pad">${Array.from({length:q.max},(_,i)=>`<button class="pn" data-act="guess" data-v="${i+1}">${i+1}</button>`).join('')}</div>`}
  render(`<div class="dots">${S.qs.map((_,i)=>`<span class="${i<S.qi?'d':i===S.qi?'c':''}">${i<S.qi?'✓':i+1}</span>`).join('')}</div><h2>${q.prompt} ${sayB(q.say,HOST[S.kind])}</h2>${a}<p class="fb" id="fb"></p>`);
- if(q.t==='susun')drawSlots();clearTimeout(sayT0);sayT0=setTimeout(()=>say(q.say,HOST[S.kind]),delay||350)}
+ if(q.t==='susun')drawSlots();afterTalk(()=>say(q.say,HOST[S.kind]),delay||350)}
 function drawSlots(){const q=S.qs[S.qi];$('#slots').innerHTML=q.syl.map((_,i)=>`<button class="slot${q.fill[i]!=null?' full':''}" data-act="slot" aria-label="kotak ${i+1}">${q.fill[i]!=null?q.tiles[q.fill[i]]:''}</button>`).join('')}
-function qRight(b){sfx.cheer();star(S.tries===0);if(b)b.classList.add('right');lock();const h=HOST[S.kind],p=pick(PRAISE);showGuest(h,'happy');bubble(p,'guest',P[h].n);say(p,h);fb(p,'good');setTimeout(nextQ,1500)}
+function qRight(b){sfx.cheer();star(S.tries===0);if(b)b.classList.add('right');lock();const h=HOST[S.kind],p=pick(PRAISE);showGuest(h,'happy');bubble(p,'guest',P[h].n);S.holdP=null;sayAfter(p,h);fb(p,'good');setTimeout(nextQ,1500)}
 function qWrong(b,t){wrong(b);S.tries++;const h=HOST[S.kind],q=S.qs[S.qi];t=t||pick(TRY);const tx=[].concat(t).join(' ');showGuest(h,'hmm');bubble(tx,'guest',P[h].n);fb(tx,'bad');say(t,h);
  if(S.tries>=2&&q.t==='choice')panel.querySelector(`[data-act=qans][data-v="${q.opts.indexOf(q.ans)}"]`)?.classList.add('hint');
  if(S.tries>=2&&q.t==='susun'&&!board.querySelector('.hintw'))board.insertAdjacentHTML('beforeend',`<div class="bd-small hintw">Petunjuk: ${q.syl[0]} ...</div>`)}
@@ -780,12 +782,12 @@ function nextQ(){S.qi++;if(S.qi<S.qs.length)qRender();else levelDone(S.kind,[`${
 
 /* ---------- tangkap bahan ---------- */
 function startGame(k){if(k==='warung'){S.day=1;newDay()}else if(k==='tangkap')tangkap();else if(k==='kembar')kembar();else quiz(k)}
-function hostIntro(kind){stopAll();S.mode='quiz';S.kind=kind;S.qi=0;S.today=0;S.phase='quiz';S.combo=0;sceneMode('quiz');const h=HOST[kind];showGuest(h,'happy',true);sfx.bell();const gt=`Halo! Aku ${P[h].n}. Ayo main ${QNAME[kind].toLowerCase()} bareng aku!`;bubble(gt,'guest',P[h].n);say(gt,h)}
+function hostIntro(kind){stopAll();S.mode='quiz';S.kind=kind;S.qi=0;S.today=0;S.phase='quiz';S.combo=0;sceneMode('quiz');const h=HOST[kind];showGuest(h,'happy',true);sfx.bell();const gt=`Halo! Aku ${P[h].n}. Ayo main ${QNAME[kind].toLowerCase()} bareng aku!`;bubble(gt,'guest',P[h].n);S.holdP=null;sayAfter(gt,h)}
 function tangkap(){hostIntro('tangkap');const M=S.lvl==='mudah',p=pL(),R=3+(S.L>10)+(S.L>30),ids=shuffle(Object.keys(ING)).slice(0,R);S.qs=ids.map(id=>({id,n:M?rand(2,2+Math.min(3,Math.floor(S.L/6))):rand(3,4+Math.round(p*3)),c:0,bad:0}));hud();render('<p class="sub" style="text-align:center">Siap-siap...</p>');setTimeout(roundT,2800)}
 function roundT(){const q=S.qs[S.qi],M=S.lvl==='mudah',w=ING[q.id][1];hud();const sp=['Tangkap',NUMW[q.n],w].join(' ');
  board.innerHTML=`${M?`<div class="bd-em">${ING[q.id][0]}</div>`:''}<div class="bd-word">${M?q.n+' '+w:'TANGKAP '+NUMW[q.n]+' '+w}</div><div class="bd-big" id="tcount" style="font-size:44px">0 / ${M?q.n:NUMW[q.n]}</div>`;
  render(`<div class="dots">${S.qs.map((_,i)=>`<span class="${i<S.qi?'d':i===S.qi?'c':''}">${i<S.qi?'✓':i+1}</span>`).join('')}</div><h2>${M?'Tangkap':'TANGKAP'} <span class="nb">${M?q.n:NUMW[q.n]}</span> ${w}! ${sayB(sp+'!','rafa')}</h2><div class="field" id="field" aria-label="Geser keranjang ke kiri dan kanan"><div class="basket${M?' bigb':''}" id="basket">🧺${S.qi===0?'<span class="finger">👆</span>':''}</div></div><p class="sub" style="text-align:center;margin:6px 0 0">Geser keranjang ke kiri-kanan dengan jarimu. Jangan sampai bahan lain masuk!</p><p class="fb" id="fb"></p>`);
- say(S.qi===0?[sp+'!','Geser keranjangnya, ya!']:sp+'!','rafa');
+ afterTalk(()=>say(S.qi===0?[sp+'!','Geser keranjangnya, ya!']:sp+'!','rafa'),100);
  const f=$('#field'),bk=$('#basket');S.bx=S.bx||.5;const place=x=>{const W=f.clientWidth||300,h=bk.offsetWidth/2||40;x=Math.max(h,Math.min(W-h,x));bk.style.left=x+'px';S.bx=x/W};place(S.bx*(f.clientWidth||300));
  let drag=false;const mv=e=>{const r=f.getBoundingClientRect();place(e.clientX-r.left);const fg=bk.querySelector('.finger');if(fg)fg.remove()};
  f.addEventListener('pointerdown',e=>{drag=true;try{f.setPointerCapture(e.pointerId)}catch(x){}mv(e)});f.addEventListener('pointermove',e=>{if(drag||e.pointerType==='mouse')mv(e)});['pointerup','pointercancel'].forEach(v=>f.addEventListener(v,()=>drag=false));
@@ -870,7 +872,7 @@ const ACT={
  tomap(){document.querySelector('.ov')?.remove();levelMap(S.game)},
  map(v){sfx.pop();levelMap(v)},
  lv(v){sfx.ok();startLevel(S.game,+v)},
- menu(v,b){const c=S.q[S.i];if(v===c.d.id){sfx.ok();star(S.tries===0);b.classList.add('right');showGuest(c.g,'happy');const nm=P[c.g].n,t=`Siap, ${nm}! ${c.qty>1?NUMW[c.qty]+' porsi':'Satu'} ${c.d.name.toLowerCase()} segera datang!`;bubble(t,'cook','Kanza');say(hasRec('Siap! Pesanan segera datang!')?['Siap! Pesanan segera datang!']:[`Siap, ${nm}!`,`${c.qty>1?NUMW[c.qty]+' porsi':'Satu'} ${c.d.name} segera datang!`],'kanza');lock();setTimeout(cook,3000)}
+ menu(v,b){const c=S.q[S.i];if(v===c.d.id){sfx.ok();star(S.tries===0);b.classList.add('right');showGuest(c.g,'happy');const nm=P[c.g].n,t=`Siap, ${nm}! ${c.qty>1?NUMW[c.qty]+' porsi':'Satu'} ${c.d.name.toLowerCase()} segera datang!`;bubble(t,'cook','Kanza');S.holdP=null;sayAfter(hasRec('Siap! Pesanan segera datang!')?['Siap! Pesanan segera datang!']:[`Siap, ${nm}!`,`${c.qty>1?NUMW[c.qty]+' porsi':'Satu'} ${c.d.name} segera datang!`],'kanza');lock();setTimeout(cook,1500)}
   else{wrong(b);S.tries++;showGuest(c.g,'hmm');const t=`Hmm, bukan ${DISH.find(d=>d.id===v).name}. Coba baca lagi, ya!`;bubble(t,'guest',P[c.g].n);say(segOr(['Hmm, bukan itu. Coba baca lagi, ya!'],t),c.g);if(S.tries>=2)panel.querySelector(`[data-v="${c.d.id}"]`).classList.add('hint')}},
  ing(v){const c=S.q[S.i];if(c.pot.length>=30)return;c.pot.push(v);sfx.plop();drawStuff(true);fb('','')},
  unpot(v){S.q[S.i].pot.splice(+v,1);tone(400,.08,'triangle');drawStuff()},
