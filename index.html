@@ -376,7 +376,9 @@ const vOf=w=>VK[w]||w||'kanza';
 const norm=t=>String(t).toLowerCase().replace(/\d+/g,d=>' '+terbilang(+d).toLowerCase()+' ').replace(/\s+/g,' ').replace(/\s+([.,!?])/g,'$1').trim();
 const hkey=s=>{let h=5381;for(const c of s)h=(Math.imul(h,33)+c.codePointAt(0))>>>0;return h.toString(36)};
 const clipId=(t,v)=>v+'_'+hkey(v+'|'+norm(t));
-const PACKS={};function pack(v){if(!PACKS[v])PACKS[v]=fetch('v/'+v+'.json').then(r=>r.ok?r.json():{}).catch(()=>({}));return PACKS[v]}
+const PACKS={};let RECD={};function pack(v){if(!PACKS[v]){PACKS[v]=fetch('v/'+v+'.json').then(r=>r.ok?r.json():{}).catch(()=>({}));if(v==='rec')PACKS[v].then(d=>RECD=d)}return PACKS[v]}
+const hasRec=t=>!!RECD[norm(t)];const segOr=(segs,whole)=>segs.every(hasRec)?segs:[].concat(whole);
+pack('rec');
 const AU=new Audio();AU.preload='auto';let spGen=0,auTok=0;
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const SILENT='data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQxAADB8AhSmxhIIEVCSiJrDCQBTcu3UrAIwUdkRgQbFAZC1CQEwTJ9mjRvBA4UOLD8nKVOWfh+UlK3z/177OXrfOdKl7pyn3Xf//WreyTRUoAWgBgkOAGbZHBgG1OF6zM82DWbZaUmMBptgQhGjsyYqc9ae9XFz280948NMBWInljyzsNRFLPWdnZGWrddDsjK1unuSrVN9jJsK8KuQtQCtMBjCEtImISdNKJOopIpBFpNSMbIHCSRpRR5iakjTiyzLhchUUBwCgyKiweBv/7UsQbg8isVNoMPMjAAAA0gAAABEVFGmgqK////9bP/6XCykxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
@@ -397,7 +399,7 @@ const cnt=(n,who)=>say(String(n),who||ctxWho());
 let sayT0=0;const autoSay=(t,who)=>{clearTimeout(sayT0);sayT0=setTimeout(()=>say(t,who),350)};
 function spellItems(words,who){const it=[];words.forEach(w=>{const lts=[...w.querySelectorAll('.lt')];lts.forEach(l=>it.push({t:LN[l.textContent]||l.textContent,el:l,pause:120,rate:.85,who}));it.push({t:lts.map(l=>l.textContent).join(''),el:w,pause:350,who})});return it}
 function orderSpeech(){const c=S.q[S.i];if(!c||S.mode!=='warung')return;const nm=P[c.g].n,words=[...bub.querySelectorAll('.wd')],who=c.g;
- const it=[{t:`Halo Kanza! Aku ${nm}.`,pause:250,who},{t:`Aku mau pesan ${c.qty>1?NUMW[c.qty]+' porsi ':''}${c.d.name}.`,pause:450,who},...spellItems(words,who)];
+ const it=[{t:`Halo Kanza! Aku ${nm}.`,pause:250,who},...segOr(c.qty>1?[`Aku mau pesan ${NUMW[c.qty]} porsi`,c.d.name+'!']:[`Aku mau pesan ${c.d.name}.`],`Aku mau pesan ${c.qty>1?NUMW[c.qty]+' porsi ':''}${c.d.name}.`).map((t,i,a)=>({t,who,pause:i===a.length-1?450:120})),...spellItems(words,who)];
  if(words.length>1)it.push({t:c.d.name+'!',el:words,who});
  speakSeq(it)}
 const sayB=(t,who)=>`<button class="say" data-say="${[].concat(t).join('|')}"${who?` data-who="${who}"`:''} aria-label="Dengarkan">🔊</button>`;
@@ -548,7 +550,7 @@ const STEPS={
  pecel:[{t:'fire',x:'Nyalakan kompornya',tool:'wajan'},{t:'hold',x:'Panaskan minyak',liq:'minyak',done:'Minyaknya panas!'},{t:'fry',x:'Goreng lelenya. Angkat saat warnanya kuning keemasan!'},{t:'tap',x:'Ulek sambal {n} kali',tool:'cobek',ic:'🪨',start:['🌶️','🍅','🧄','🌶️'],end:['.sambal'],n:[4,6],ok:'Sambalnya jadi!',fx:'thud'},{t:'tap',x:'Potong timun {n} kali',tool:'talenan',ic:'🔪',start:['🥒'],add:'.slice',n:[3,5],ok:'Timunnya sudah dipotong!',fx:'chop'},{t:'ing',x:'Tata bahan di piring',tool:'piring'}]};
 function cook(){S.phase='cook';S.tries=0;const c=S.q[S.i];
  c.steps=STEPS[c.d.id].map(s=>({...s,n:s.n?rand(s.n[0],s.n[1]):0,c:0,p:0}));c.si=0;c.pot=[];c.k={tool:'panci',fire:false,liq:{},lv:{},stuff:{}};
- const zt=`Aku Zafran. Ayo masak ${c.d.name.toLowerCase()} bareng aku!`;bubble(zt,'cook','Zafran');say(zt,'zafran');setTimeout(stepRender,2200)}
+ const zt=`Aku Zafran. Ayo masak ${c.d.name.toLowerCase()} bareng aku!`;bubble(zt,'cook','Zafran');say(segOr(['Aku Zafran.','Ayo masak bareng aku!'],zt),'zafran');setTimeout(stepRender,2200)}
 const tok=s=>s[0]==='.'?`<i class="tok ${s.slice(1)}"></i>`:`<span class="em">${s}</span>`;
 function stationHTML(){const k=S.q[S.i].k,t=k.tool,stove=t==='panci'||t==='wajan';
  return `<div class="cw tool-${t}" id="cw"><div class="liq ${k.liq[t]||''}" style="height:${k.lv[t]||0}%"><span id="bubs"></span></div><div class="stuff" id="stuff"></div><span class="spoon" id="spoon">🥄</span></div>`+(stove?`<div class="flames${k.fire?' on':''}" id="flames"><i></i><i></i><i></i></div><div class="stove"><button class="knob${k.fire?' on':''}" id="knob" data-act="knob" aria-label="Tombol kompor"></button></div>`:'<div class="table"></div>')}
@@ -564,7 +566,7 @@ function stepRender(){const c=S.q[S.i],k=c.k,st=c.steps[c.si],M=S.lvl==='mudah';
  if(st.t==='hold'){k.liq[t]=st.liq;k.lv[t]=st.liq==='air'?58:26}
  if(st.t==='fry')k.stuff[t]=['🐟'];
  st.c=0;st.p=0;
- const nTxt=M?st.n:NUMW[st.n],html=st.x.replace('{n}',`<span class="nb">${nTxt}</span>`),sayT=st.x.replace('{n}',NUMW[st.n]);
+ const nTxt=M?st.n:NUMW[st.n],html=st.x.replace('{n}',`<span class="nb">${nTxt}</span>`),sayW=st.x.replace('{n}',NUMW[st.n]),sayT=st.x.includes('{n}')?segOr(st.x.split('{n}').map(s=>s.trim()).flatMap((s,i)=>i?[NUMW[st.n],s]:[s]).filter(Boolean),sayW):sayW;
  const mid='style="text-align:center"';let ctl='';
  if(st.t==='fire')ctl=`<p class="sub" ${mid}>Ketuk tombol merah di kompor!</p>`;
  if(st.t==='hold')ctl=`<div class="bar"><i id="barf"></i></div><div class="row"><button class="btn hold" id="holdb">🔥 Tahan di sini</button></div><p class="sub" ${mid}>Tekan terus tombolnya, jangan dilepas!</p>`;
@@ -613,7 +615,7 @@ function checkPot(){const c=S.q[S.i],M=S.lvl==='mudah',t=c.k.tool,cnt={};c.pot.f
 function ready(){const c=S.q[S.i];sfx.win();showGuest(c.g,'happy');bubble('Wah, wanginya enak sekali!','guest',P[c.g].n);setTimeout(()=>say([{t:`${c.d.name} siap!`,who:'kanza',pause:300},{t:'Wah, wanginya enak sekali!',who:c.g}]),300);
  render(`<div class="ready"><div class="plate">${c.d.icon}</div><h2>${c.d.name} siap!${c.qty>1?` (${NUMW[c.qty]} porsi)`:''}</h2><button class="btn" data-act="serve">Sajikan ke ${P[c.g].n} 🍽️</button></div>`);}
 function pay(){S.phase='pay';S.tries=0;const c=S.q[S.i],M=S.lvl==='mudah',p=c.d.price,nm=P[c.g].n;c.tot=p*c.qty;sfx.nyam();showGuest(c.g,'happy');let s,cl;
- if(M){c.ans=c.tot;cl='Nyam, enak! Ini uangnya, Kanza.';s=[`Harga ${c.d.name} ${p} ribu.`,`Hitung koin dari ${nm}.`,'Satu koin seribu.'];bubble(cl,'guest',nm);
+ if(M){c.ans=c.tot;cl='Nyam, enak! Ini uangnya, Kanza.';s=[`Harga ${c.d.name} ${p} ribu.`,`Hitung koin dari ${nm}.`,hasRec('Satu koin seribu. Ketuk satu per satu, ya!')?'Satu koin seribu. Ketuk satu per satu, ya!':'Satu koin seribu.'];bubble(cl,'guest',nm);
   render(`<h2>Harga ${c.d.name} ${p} ribu ${sayB(s,'kanza')}</h2><p class="sub">Hitung koin dari ${nm}. Satu koin = <b>seribu</b>. Ketuk koinnya satu per satu!</p><div class="coins">${coins(c.tot)}</div><h3>Ada berapa koin?</h3>${choices(c.tot)}<p class="fb" id="fb"></p>`)}
  else if(c.qty>1){c.ans=c.tot;cl=`Nyam, enak! Aku beli ${NUMW[c.qty]} porsi. Jadi berapa, Kanza?`;s=[`Harga satu porsi ${c.d.name} ${p} ribu.`,`${nm} beli ${NUMW[c.qty]} porsi.`,'Berapa ribu semuanya?'];bubble(cl,'guest',nm);
   render(`<h2>Harga 1 porsi ${c.d.name} = ${p} ribu ${sayB(s,'kanza')}</h2><p class="sub">${nm} beli <b>${NUMW[c.qty]}</b> porsi. Berapa ribu semuanya?</p><div class="money"><span class="price">${Array(c.qty).fill(p+' ribu').join(' + ')}</span><span>=</span><span class="qbox">?</span></div><div id="hintbox"></div>${choices(c.tot,'ribu')}<p class="fb" id="fb"></p>`)}
@@ -623,7 +625,7 @@ function pay(){S.phase='pay';S.tries=0;const c=S.q[S.i],M=S.lvl==='mudah',p=c.d.
 function payHint(){const c=S.q[S.i],h=$('#hintbox');if(!h)return;const p=c.d.price;
  if(c.qty>1)h.innerHTML=`<p class="sub">Petunjuk: ini ${NUMW[c.qty]} kelompok koin. Hitung semuanya!</p>`+Array(c.qty).fill(`<div class="coins">${coins(p)}</div>`).join('');
  else h.innerHTML=`<p class="sub">Petunjuk: ada 10 koin, ${p} koin dipakai bayar. Sisanya berapa?</p><div class="coins">${coins(10,p)}</div>`}
-function paid(){const c=S.q[S.i],nm=P[c.g].n,tip=hearts(c)>=3;clearInterval(S.pt);S.pt=0;S.earn.push(c.tot);fb(tip?`Betul! ${nm} kasih tip! +1 ★`:'Betul! Hebat!','good');if(tip){bubble('Ini tip buat kamu, Kanza!','guest',nm);setTimeout(addStar,600)}say([...(tip?[{t:'Ini tip buat kamu, Kanza!',who:c.g,pause:250}]:[]),'Betul!',`Terima kasih, ${nm}.`,'Datang lagi, ya!'],'kanza');setTimeout(()=>{$('#hearts').innerHTML='';
+function paid(){const c=S.q[S.i],nm=P[c.g].n,tip=hearts(c)>=3;clearInterval(S.pt);S.pt=0;S.earn.push(c.tot);fb(tip?`Betul! ${nm} kasih tip! +1 ★`:'Betul! Hebat!','good');if(tip){bubble('Ini tip buat kamu, Kanza!','guest',nm);setTimeout(addStar,600)}say([...(tip?[{t:'Ini tip buat kamu, Kanza!',who:c.g,pause:250}]:[]),...segOr(['Betul! Terima kasih. Datang lagi, ya!'],['Betul!',`Terima kasih, ${nm}.`,'Datang lagi, ya!'])],'kanza');setTimeout(()=>{$('#hearts').innerHTML='';
  bubble(`Terima kasih, ${nm}! Datang lagi, ya.`,'cook','Kanza');guestEl.classList.add('leave');
  setTimeout(()=>{S.i++;const left=S.q.length-S.i;if(left===0||(S.i-S.last>=3&&left>=2))bibi();else nextGuest()},800)},900)}
 function bibi(){S.phase='bibi';S.tries=0;hud();const M=S.lvl==='mudah',grp=S.q.slice(S.last,S.i),e=S.earn.slice(S.last,S.i);S.bibiAns=e.reduce((a,b)=>a+b,0);
@@ -780,8 +782,8 @@ const ACT={
  tomap(){document.querySelector('.ov')?.remove();levelMap(S.game)},
  map(v){sfx.pop();levelMap(v)},
  lv(v){sfx.ok();startLevel(S.game,+v)},
- menu(v,b){const c=S.q[S.i];if(v===c.d.id){sfx.ok();star(S.tries===0);b.classList.add('right');showGuest(c.g,'happy');const nm=P[c.g].n,t=`Siap, ${nm}! ${c.qty>1?NUMW[c.qty]+' porsi':'Satu'} ${c.d.name.toLowerCase()} segera datang!`;bubble(t,'cook','Kanza');say([`Siap, ${nm}!`,`${c.qty>1?NUMW[c.qty]+' porsi':'Satu'} ${c.d.name} segera datang!`],'kanza');lock();setTimeout(cook,3000)}
-  else{wrong(b);S.tries++;showGuest(c.g,'hmm');const t=`Hmm, bukan ${DISH.find(d=>d.id===v).name}. Coba baca lagi, ya!`;bubble(t,'guest',P[c.g].n);say(t,c.g);if(S.tries>=2)panel.querySelector(`[data-v="${c.d.id}"]`).classList.add('hint')}},
+ menu(v,b){const c=S.q[S.i];if(v===c.d.id){sfx.ok();star(S.tries===0);b.classList.add('right');showGuest(c.g,'happy');const nm=P[c.g].n,t=`Siap, ${nm}! ${c.qty>1?NUMW[c.qty]+' porsi':'Satu'} ${c.d.name.toLowerCase()} segera datang!`;bubble(t,'cook','Kanza');say(hasRec('Siap! Pesanan segera datang!')?['Siap! Pesanan segera datang!']:[`Siap, ${nm}!`,`${c.qty>1?NUMW[c.qty]+' porsi':'Satu'} ${c.d.name} segera datang!`],'kanza');lock();setTimeout(cook,3000)}
+  else{wrong(b);S.tries++;showGuest(c.g,'hmm');const t=`Hmm, bukan ${DISH.find(d=>d.id===v).name}. Coba baca lagi, ya!`;bubble(t,'guest',P[c.g].n);say(segOr(['Hmm, bukan itu. Coba baca lagi, ya!'],t),c.g);if(S.tries>=2)panel.querySelector(`[data-v="${c.d.id}"]`).classList.add('hint')}},
  ing(v){const c=S.q[S.i];if(c.pot.length>=30)return;c.pot.push(v);sfx.plop();drawStuff(true);fb('','')},
  unpot(v){S.q[S.i].pot.splice(+v,1);tone(400,.08,'triangle');drawStuff()},
  cookgo(){const m=checkPot();if(m){sfx.no();S.tries++;fb(m[0],'bad');say(m[1],'zafran');return}
