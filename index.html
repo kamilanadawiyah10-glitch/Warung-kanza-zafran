@@ -438,9 +438,10 @@ function confetti(){const col=['#e8412f','#ffb703','#1e7fe0','#ff6f9f','#22a99c'
 function overlay(title,lines){const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="endc"><div class="trophy">🏆</div><h2>${title}</h2>${lines.map(l=>`<p>${l}</p>`).join('')}<div class="row"><button class="btn" data-act="again">Main lagi</button><button class="btn alt" data-act="home">Menu</button></div></div>`;document.body.append(o);sfx.win();confetti();say(title,'kanza')}
 
 /* ---------- menu ---------- */
+function homeGreet(){speakSeq([{t:'Halo! Aku Kanza.',who:'kanza',pause:150},{t:'Aku Zafran.',who:'zafran',pause:200},{t:'Mau main apa hari ini?',who:'kanza'}])}
 function stopAll(){clearInterval(S.pt);S.pt=0;clearInterval(S.tm);S.tm=0;$('#hearts').innerHTML='';document.querySelector('.ov')?.remove()}
 function home(){stopAll();S.mode='home';S.phase='home';sceneMode('warung');setCooks();guestEl.innerHTML='';hud();applyDecor();
- bubble('Halo! Kami <b>Kanza</b> dan <b>Zafran</b>. Mau main apa hari ini?','cook','Kanza & Zafran');
+ bubble('Halo! Kami <b>Kanza</b> dan <b>Zafran</b>. Mau main apa hari ini? <button class="say" data-act="greet" aria-label="Dengarkan">🔊</button>','cook','Kanza & Zafran');if(AC)homeGreet();
  const sg=(act,v,l,cur)=>`<button class="sg${String(cur)===String(v)?' on':''}" data-act="${act}" data-v="${v}">${l}</button>`,n=boxes();
  render(`<button class="gift" data-act="album"><span class="gbox${n||cards()?' wob':''}">${cards()?'🎫':'🎁'}</span><span><b>Nilai &amp; Hadiah</b><small>${cards()?`🎫 Ada ${cards()} kartu gosok hadiah! `:''}${n?`🎁 Ada ${n} kotak kejutan!`:''}${!cards()&&!n?`Kumpulkan bintang untuk hadiah`:''} · Stiker ${S.stk.length}/${STK.length}</small></span></button>
  <div class="seg"><span>Umur:</span>${sg('setlvl','mudah','🐣 6–7 tahun <small>mulai Level 1</small>',S.age)}${sg('setlvl','seru','🚀 8–10 tahun <small>buka sampai Level 26</small>',S.age)}</div>
@@ -449,7 +450,7 @@ function home(){stopAll();S.mode='home';S.phase='home';sceneMode('warung');setCo
  <h3>Para pemain</h3><div class="cast">${Object.keys(P).map(k=>`<div class="mini">${av(k)}<b>${P[k].n}</b><small>${P[k].role}</small></div>`).join('')}</div>
  <p class="credit">Suara dibuat dengan Piper TTS (MIT), model Indonesia id_ID-news_tts dari data INDspeech News TTS (CC BY-NC-SA 4.0). Huruf: Baloo 2 (SIL OFL). Gratis, bukan untuk dijual.</p>`)}
 function album(){stopAll();S.mode='album';S.phase='album';sceneMode('warung');setCooks();guestEl.innerHTML='';$('#prog').textContent='Hadiah';applyDecor();const n=boxes();
- bubble(n?'Ayo buka kotak kejutannya!':'Kumpulkan bintang, nanti dapat kotak kejutan!','cook','Kanza');
+ {const t=n||cards()?'Ayo buka hadiahnya!':'Kumpulkan bintang, nanti dapat hadiah!';bubble(t,'cook','Kanza');say(t,'kanza')}
  const c=cards(),open=RW.coupons.filter(x=>!x.used);
  render(`<div class="rapor"><div class="rh"><b>📊 Nilai ${esc(RW.player)}</b><span>★ ${S.stars}</span></div><div class="rg">${Object.entries(GAMES).map(([k,G])=>`<div><span>${G.e}</span><b>${G.n}</b><small>Level ${doneMax(k)} · ★ ${starsOf(k)}</small></div>`).join('')}</div><p class="sub" style="margin:6px 0 0">Tunjukkan nilai ini ke ${esc(RW.to)}, ya!</p></div>
  <h2>🎫 Kartu gosok hadiah ${sayB(['Setiap',String(RW.every),'bintang, kamu dapat kartu gosok hadiah!'],'kanza')}</h2>
@@ -743,7 +744,7 @@ function voiceManifest(){const out=new Map(),add=(t,w)=>{const v=vOf(w);out.set(
  WORDS.forEach(w=>{add(w.w,'chira');w.syl.forEach(s=>add(s,'chira'))});
  ['Ada berapa? Ketuk satu per satu, ya!','Mana angka','Mana angka yang lebih besar?','Baca tulisannya. Angka berapa?','Lihat polanya. Angka berapa yang hilang?','tambah','kurang','berapa?','Lebih besar dari','Lebih kecil dari'].forEach(t=>add(t,'fathir'));
  for(let n=0;n<=10;n++)add(`Angka ${terbilang(n)}`,'fathir');nums('fathir',0,100);[10,20,25,30,35,40,45,50].forEach(m=>add(`Fathir punya angka rahasia dari satu sampai ${terbilang(m)}. Ayo tebak!`,'fathir'));
- add('Pilih permainan yang kamu suka!','kanza');add('Pilih level, ya!','kanza');add('Gosok kartunya!','kanza');add('Setiap','kanza');add('bintang, kamu dapat kartu gosok hadiah!','kanza');
+ add('Pilih permainan yang kamu suka!','kanza');add('Pilih level, ya!','kanza');add('Halo! Aku Kanza.','kanza');add('Aku Zafran.','zafran');add('Mau main apa hari ini?','kanza');add('Ayo buka hadiahnya!','kanza');add('Kumpulkan bintang, nanti dapat hadiah!','kanza');add('Gosok kartunya!','kanza');add('Setiap','kanza');add('bintang, kamu dapat kartu gosok hadiah!','kanza');
  ['Hore! Kamu dapat','Tunjukkan ke Bibi Kamila, ya!','Tunjukkan kuponnya, ya!',...DEFPRIZE.map(p=>p[1])].forEach(t=>add(t,'kamila'));for(let L=1;L<=MAXL;L++)add(`Level ${L} selesai!`,'kanza');['Tiga bintang! Hebat sekali!','Dua bintang! Bagus!','Satu bintang! Ayo coba lagi biar dapat tiga!'].forEach(t=>add(t,'kanza'));add('Angka','fathir');add('Buka kotak kejutan untuk dapat stiker!','kanza');STK.forEach(s=>{add(s.n,'kanza');add(`Wah, dapat stiker ${s.n}!`,'kanza')});
  kids.forEach(v=>add('Ini tip buat kamu, Kanza!',v));
  Object.values(ING).forEach(([e,w])=>{add(w,'rafa');for(let n=2;n<=8;n++)add(`Tangkap ${NUMW[n]} ${w}!`,'rafa')});add('Itu','rafa');add('Geser keranjangnya, ya!','rafa');
@@ -770,6 +771,7 @@ const ACT={
  flip(v,b){flip(v,b)},
  openbox(v,b){const n=boxes();if(!n)return;lock();b.classList.remove('wob');b.classList.add('shakebox');[300,400,500,600].forEach((f,i)=>tone(f,.08,'triangle',i*.2));setTimeout(()=>{const pool=STK.filter(s=>!S.stk.includes(s.i)),s=pick(pool.length?pool:STK);if(!S.stk.includes(s.i))S.stk.push(s.i);S.opened++;store('stk',JSON.stringify(S.stk));store('opened',S.opened);sfx.win();confetti();$('#reveal').innerHTML=`<div class="rev"><span>${s.e}</span><b>${s.n}</b><small>Stiker baru!</small></div>`;say(`Wah, dapat stiker ${s.n}!`,'kanza');setTimeout(album,3200)},1300)},
  order(){orderSpeech()},
+ greet(){homeGreet()},
  setlvl(v){S.age=v;store('lvl',v);sfx.pop();home()},
  setn(v){S.n=+v;store('n',v);sfx.pop();home()},
  play(v){sfx.ok();levelMap(v)},
@@ -813,7 +815,7 @@ const ACT={
   $('#hist').innerHTML=q.g.map(x=>`<span class="hc">${x} ${x<q.secret?'⬆':'⬇'}</span>`).join('')}};
 
 document.addEventListener('keydown',e=>{if(S.mode==='quiz'&&S.kind==='tangkap'&&S.keyMove&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();S.keyMove(e.key==='ArrowLeft'?-1:1)}});
-document.addEventListener('pointerdown',()=>{ac();musicOn();unlockAudio()},{once:true});
+document.addEventListener('pointerdown',()=>{ac();musicOn();unlockAudio();const g0=spGen;setTimeout(()=>{if(S.mode==='home'&&spGen===g0)homeGreet()},450)},{once:true});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-say]');if(t&&!t.dataset.act)say(t.dataset.say.split('|'),t.dataset.who||ctxWho());
  const b=e.target.closest('[data-act]');if(b&&ACT[b.dataset.act])ACT[b.dataset.act](b.dataset.v,b)});
 applyDecor();$('#sndBtn').textContent=snd?'🔊':'🔇';$('#musBtn').classList.toggle('offb',!mus);
