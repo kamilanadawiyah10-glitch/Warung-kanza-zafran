@@ -492,9 +492,9 @@ const sayB=(t,who)=>`<button class="say" data-say="${[].concat(t).join('|')}"${w
 const QNAME={huruf:'Tebak Huruf',kata:'Tebak Kata',angka:'Tebak Angka',tangkap:'Tangkap Bahan',kembar:'Kartu Kembar'},HOST={huruf:'chira',kata:'zeya',angka:'fathir',tangkap:'rafa',kembar:'nayla'};
 const STK='KUCING🐱,ANJING🐶,PANDA🐼,KELINCI🐰,RUBAH🦊,KOALA🐨,SINGA🦁,HARIMAU🐯,PINGUIN🐧,LUMBA-LUMBA🐬,PAUS🐳,GURITA🐙,KUPU-KUPU🦋,KEPIK🐞,DINOSAURUS🦕,NAGA🐉,UNIKORN🦄,ROKET🚀,PELANGI🌈,BINTANG⭐,BULAN🌙,MATAHARI🌞,ES KRIM🍦,DONAT🍩,PERMEN🍬,KUE ULANG TAHUN🎂,MOBIL BALAP🏎️,KERETA🚂,ROBOT🤖,MAHKOTA👑'.split(',').map((s,i)=>{const m=s.match(/^([A-Z -]+)(.+)$/);return{i,n:m[1],e:m[2]}});
 const DECOR=[{s:10,id:'lampu',n:'lampu hias',e:'💡'},{s:20,id:'tanaman',n:'tanaman',e:'🪴'},{s:35,id:'balon',n:'balon',e:'🎈'},{s:50,id:'bendera',n:'bendera',e:'🚩'},{s:70,id:'tenda',n:'tenda emas',e:'⛺'},{s:90,id:'topi',n:'topi koki emas',e:'👑'}];
-const DEFPRIZE=[['🍫','Cokelat'],['🍦','Es krim'],['🍬','Permen'],['💵','Jajan 5 ribu'],['🧸','Mainan kecil'],['🛝','Jalan-jalan ke taman'],['🤗','Pelukan besar'],['🍽️','Pilih menu makan']];
+const DEFPRIZE=[['🍫','Cokelat'],['🍦','Es krim'],['🍬','Permen'],['💵','Jajan 5 ribu'],['🧸','Mainan kecil'],['🛝','Jalan-jalan ke taman'],['🤗','Pelukan besar'],['🍽️','Pilih menu makanan']];
 const RW=Object.assign({every:10,to:'Bibi Kamila',player:'Kanza',prizes:DEFPRIZE.map(([e,n])=>({e,n})),pin:'',used:0,coupons:[],card:null},JSON.parse(load('rw')||'{}'));
-RW.prizes.forEach(p=>{if(p.n==='Main ke taman')p.n='Jalan-jalan ke taman'});
+RW.prizes.forEach(p=>{if(p.n==='Main ke taman')p.n='Jalan-jalan ke taman';if(p.n==='Pilih menu makan')p.n='Pilih menu makanan'});
 const saveRW=()=>store('rw',JSON.stringify(RW));
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cards=()=>Math.max(0,Math.floor(S.stars/RW.every)-RW.used);
