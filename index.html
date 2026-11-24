@@ -461,7 +461,7 @@ const norm=t=>String(t).toLowerCase().replace(/\d+/g,d=>' '+terbilang(+d).toLowe
 const hkey=s=>{let h=5381;for(const c of s)h=(Math.imul(h,33)+c.codePointAt(0))>>>0;return h.toString(36)};
 const clipId=(t,v)=>v+'_'+hkey(v+'|'+norm(t));
 const PACKS={};let RECD={};function pack(v){if(!PACKS[v]){PACKS[v]=fetch('v/'+v+'.json').then(r=>r.ok?r.json():{}).catch(()=>({}));if(v==='rec')PACKS[v].then(d=>RECD=d)}return PACKS[v]}
-const hasRec=t=>!!RECD[norm(t)];const segOr=(segs,whole)=>segs.every(hasRec)?segs:[].concat(whole);
+const hasRec=t=>{const n=norm(t);if(RECD[n])return true;const m=n.match(/^(.+ puluh) (\S+)$/);return !!(m&&RECD[m[1]]&&RECD[m[2]])};const segStr=(segs,whole)=>[].concat(segOr(segs,whole)).join('|');const segOr=(segs,whole)=>segs.every(hasRec)?segs:[].concat(whole);
 pack('rec');
 const AU=new Audio();AU.preload='auto';let spGen=0,auTok=0;
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -571,7 +571,7 @@ function startLevel(k,L){document.querySelector('.ov')?.remove();S.game=k;S.L=L;
 function levelDone(k,lines,forced){const st=forced||(S.qn?(S.ok/S.qn>=.9?3:S.ok/S.qn>=.6?2:1):3),pr=gp(k),L=S.L,first=!pr[L];pr[L]=Math.max(pr[L]||0,st);store('prog',JSON.stringify(S.prog));
  const o=document.createElement('div');o.className='ov';const big=[1,2,3].map(i=>`<span class="bs${i<=st?' on':''}" style="animation-delay:${i*.25}s">★</span>`).join('');
  o.innerHTML=`<div class="endc"><div class="bigstars">${big}</div><h2>Level ${L} selesai!</h2>${lines.map(l=>`<p>${l}</p>`).join('')}${first&&L<MAXL?`<p class="unl">🔓 Level ${L+1} terbuka!</p>`:''}<div class="row">${L<MAXL?`<button class="btn" data-act="nextlv">Level ${L+1} ▶</button>`:''}<button class="btn alt" data-act="again">Ulangi</button><button class="btn alt" data-act="tomap">Peta</button></div></div>`;
- document.body.append(o);sfx.win();confetti();say([`Level ${L} selesai!`,st===3?'Tiga bintang! Hebat sekali!':st===2?'Dua bintang! Bagus!':'Satu bintang! Ayo coba lagi biar dapat tiga!'],'kanza')}
+ document.body.append(o);sfx.win();confetti();say([...segOr(['Level',String(L),'selesai!'],`Level ${L} selesai!`),st===3?'Tiga bintang! Hebat sekali!':st===2?'Dua bintang! Bagus!':'Satu bintang! Ayo coba lagi biar dapat tiga!'],'kanza')}
 /* ---------- kartu gosok ---------- */
 function scratchPage(){stopAll();S.mode='album';S.phase='album';sceneMode('warung');guestEl.innerHTML='';
  if(!RW.card){if(!cards()||!RW.prizes.length)return album();const p=pick(RW.prizes);RW.card={e:p.e,n:p.n};RW.used++;saveRW()}
@@ -627,7 +627,7 @@ function nextGuest(){S.phase='order';S.tries=0;const c=S.q[S.i],M=S.lvl==='mudah
  const q=c.qty>1?`<span class="syl qn" data-say="${NUMW[c.qty]}">${NUMW[c.qty]}</span> porsi `:'';
  bubble(`Halo Kanza! Aku ${nm}. Aku mau pesan ${q}${sylHTML(c.d)} <button class="say" data-act="order" aria-label="Dengarkan pesanan">🔊</button>`,'guest',nm);
  afterTalk(orderSpeech,700);
- render(`<h2>Baca pesanan ${nm}. Pilih menu yang benar! ${sayB('Baca pesanan '+nm+'. Pilih menu yang benar!','kanza')}</h2>
+ render(`<h2>Baca pesanan ${nm}. Pilih menu yang benar! ${sayB(segOr(['Baca pesanan',nm,'Pilih menu yang benar!'],'Baca pesanan '+nm+'. Pilih menu yang benar!'),'kanza')}</h2>
  <div class="menu">${shuffle(DISH).map(d=>`<button class="card" data-act="menu" data-v="${d.id}">${M?`<span class="big">${d.icon}</span>`:''}<b>${d.name}</b></button>`).join('')}</div><p class="fb" id="fb"></p>`)}
 
 const STEPS={
@@ -666,7 +666,7 @@ function stepRender(){const c=S.q[S.i],k=c.k,st=c.steps[c.si],M=S.lvl==='mudah';
  if(st.t==='tap')ctl=`<div class="bigc"><span id="sc">0</span> / ${nTxt}</div><div class="row"><button class="tapb" data-act="tapstep" aria-label="ketuk">${st.ic}</button></div>`;
  if(st.t==='pour')ctl=`<div class="row"><button class="btn" data-act="pour">Tuang ke ${st.to}! ${st.to==='mangkuk'?'🥣':'🍽️'}</button></div>`;
  if(st.t==='fry'){st.a=M?45:58;st.b=M?82:80;ctl=`<div class="frybar"><i class="z" style="left:${st.a}%;width:${st.b-st.a}%"></i><i class="cur" id="fcur"></i></div><div class="lbls"><span>Mentah</span><span>Pas!</span><span>Gosong</span></div><div class="row"><button class="btn" data-act="angkat">Angkat! 🍳</button></div>`}
- const rec=st.t==='ing'?`<ul class="rec">${c.rec.map(([id,n])=>`<li data-say="${NUMW[n]} ${ING[id][1]}" data-who="zafran">${M?`<span class="n">${n}</span><span class="ic">${ING[id][0]}</span>`:`<span class="nw">${NUMW[n]}</span>`}<b>${ING[id][1]}</b>${M?`<span class="cnt" id="cnt-${id}">0/${n}</span>`:''}</li>`).join('')}</ul>`:'';
+ const rec=st.t==='ing'?`<ul class="rec">${c.rec.map(([id,n])=>`<li data-say="${NUMW[n]}|${ING[id][1]}" data-who="zafran">${M?`<span class="n">${n}</span><span class="ic">${ING[id][0]}</span>`:`<span class="nw">${NUMW[n]}</span>`}<b>${ING[id][1]}</b>${M?`<span class="cnt" id="cnt-${id}">0/${n}</span>`:''}</li>`).join('')}</ul>`:'';
  render(`<div class="dots">${c.steps.map((s,i)=>`<span class="${i<c.si?'d':i===c.si?'c':''}">${i<c.si?'✓':i+1}</span>`).join('')}</div><h2>${html} ${sayB(sayT,'zafran')}</h2>${rec}<div class="station" id="station">${stationHTML()}</div>${ctl}<p class="fb" id="fb"></p>`);
  drawStuff();autoSay(sayT,'zafran');
  if(st.t==='fire')$('#knob').classList.add('hint');
@@ -700,18 +700,18 @@ function checkPot(){const c=S.q[S.i],M=S.lvl==='mudah',t=c.k.tool,cnt={};c.pot.f
  if(extra){const w=ING[extra][1];return[`Ups! ${w} tidak ada di resep. Ketuk ${w} di ${t} untuk mengeluarkannya.`,segOr(['Ups! Itu tidak ada di resep.'],['Ups!',w,`tidak ada di resep. Keluarkan dari ${t}, ya!`])]}
  for(const [id,n] of c.rec){const h=cnt[id]||0,w=ING[id][1];
   if(h<n)return M?[`${w} masih kurang ${n-h}.`,[w,'masih kurang',String(n-h)]]:[`${w} masih kurang. Hitung lagi!`,segOr([w,'masih kurang','Hitung lagi, ya!'],[w,'masih kurang. Hitung lagi!'])];
-  if(h>n)return M?[`${w} kebanyakan ${h-n}. Keluarkan dari ${t}.`,[w,'kebanyakan',String(h-n),`Keluarkan dari ${t}, ya!`]]:[`${w} kebanyakan. Hitung lagi!`,segOr([w,'kebanyakan','Hitung lagi, ya!'],[w,'kebanyakan. Hitung lagi!'])]}
+  if(h>n)return M?[`${w} kebanyakan ${h-n}. Keluarkan dari ${t}.`,[w,'kebanyakan',String(h-n)]]:[`${w} kebanyakan. Hitung lagi!`,segOr([w,'kebanyakan','Hitung lagi, ya!'],[w,'kebanyakan. Hitung lagi!'])]}
  return null}
 function ready(){const c=S.q[S.i];sfx.win();showGuest(c.g,'happy');bubble('Wah, wanginya enak sekali!','guest',P[c.g].n);setTimeout(()=>say([{t:`${c.d.name} siap!`,who:'kanza',pause:300},{t:'Wah, wanginya enak sekali!',who:c.g}]),300);
  render(`<div class="ready"><div class="plate">${c.d.icon}</div><h2>${c.d.name} siap!${c.qty>1?` (${NUMW[c.qty]} porsi)`:''}</h2><button class="btn" data-act="serve">Sajikan ke ${P[c.g].n} 🍽️</button></div>`);}
 function pay(){S.phase='pay';S.tries=0;const c=S.q[S.i],M=S.lvl==='mudah',p=c.d.price,nm=P[c.g].n;c.tot=p*c.qty;sfx.nyam();showGuest(c.g,'happy');let s,cl;
- if(M){c.ans=c.tot;cl='Nyam, enak! Ini uangnya, Kanza.';s=[`Harga ${c.d.name} ${p} ribu.`,`Hitung koin dari ${nm}.`,hasRec('Satu koin seribu. Ketuk satu per satu, ya!')?'Satu koin seribu. Ketuk satu per satu, ya!':'Satu koin seribu.'];bubble(cl,'guest',nm);
+ if(M){c.ans=c.tot;cl='Nyam, enak! Ini uangnya, Kanza.';s=[`Harga ${c.d.name} ${p} ribu.`,...segOr(['Hitung koin dari',nm],`Hitung koin dari ${nm}.`),hasRec('Satu koin seribu. Ketuk satu per satu, ya!')?'Satu koin seribu. Ketuk satu per satu, ya!':'Satu koin seribu.'];bubble(cl,'guest',nm);
   render(`<h2>Harga ${c.d.name} ${p} ribu ${sayB(s,'kanza')}</h2><p class="sub">Hitung koin dari ${nm}. Satu koin = <b>seribu</b>. Ketuk koinnya satu per satu!</p><div class="coins">${coins(c.tot)}</div><h3>Ada berapa koin?</h3>${choices(c.tot)}<p class="fb" id="fb"></p>`)}
- else if(c.qty>1){c.ans=c.tot;cl=`Nyam, enak! Aku beli ${NUMW[c.qty]} porsi. Jadi berapa, Kanza?`;s=[`Harga satu porsi ${c.d.name} ${p} ribu.`,`${nm} beli ${NUMW[c.qty]} porsi.`,'Berapa ribu semuanya?'];bubble(cl,'guest',nm);
+ else if(c.qty>1){c.ans=c.tot;cl=`Nyam, enak! Aku beli ${NUMW[c.qty]} porsi. Jadi berapa, Kanza?`;s=[`Harga satu porsi ${c.d.name} ${p} ribu.`,...segOr([nm,`beli ${NUMW[c.qty]} porsi.`],`${nm} beli ${NUMW[c.qty]} porsi.`),'Berapa ribu semuanya?'];bubble(cl,'guest',nm);
   render(`<h2>Harga 1 porsi ${c.d.name} = ${p} ribu ${sayB(s,'kanza')}</h2><p class="sub">${nm} beli <b>${NUMW[c.qty]}</b> porsi. Berapa ribu semuanya?</p><div class="money"><span class="price">${Array(c.qty).fill(p+' ribu').join(' + ')}</span><span>=</span><span class="qbox">?</span></div><div id="hintbox"></div>${choices(c.tot,'ribu')}<p class="fb" id="fb"></p>`)}
- else{c.ans=10-p;cl='Nyam, enak! Ini uangku sepuluh ribu, ya.';s=[`Harga ${c.d.name} ${p} ribu.`,`${nm} bayar pakai uang sepuluh ribu.`,'Berapa kembaliannya?'];bubble(cl,'guest',nm);
+ else{c.ans=10-p;cl='Nyam, enak! Ini uangku sepuluh ribu, ya.';s=[`Harga ${c.d.name} ${p} ribu.`,...segOr([nm,'bayar pakai uang sepuluh ribu.'],`${nm} bayar pakai uang sepuluh ribu.`),'Berapa kembaliannya?'];bubble(cl,'guest',nm);
   render(`<h2>Harga ${c.d.name} ${p} ribu ${sayB(s,'kanza')}</h2><p class="sub">${nm} bayar pakai uang <b>10 ribu</b>. Berapa kembaliannya?</p><div class="money"><div class="note">10.000</div><span>−</span><span class="price">${p} ribu</span><span>=</span><span class="qbox">?</span></div><div id="hintbox"></div>${choices(10-p,'ribu')}<p class="fb" id="fb"></p>`)}
- clearTimeout(sayT0);sayT0=setTimeout(()=>say([{t:cl,who:c.g,pause:350},...s.map(t=>({t,who:'kanza'}))]),300)}
+ clearTimeout(sayT0);sayT0=setTimeout(()=>say([...[].concat(c.qty>1&&S.lvl!=='mudah'?segOr(['Nyam, enak!',`Aku beli ${NUMW[c.qty]} porsi.`,'Jadi berapa, Kanza?'],cl):cl).map((t,i,a)=>({t,who:c.g,pause:i===a.length-1?350:120})),...s.map(t=>({t,who:'kanza'}))]),300)}
 function payHint(){const c=S.q[S.i],h=$('#hintbox');if(!h)return;const p=c.d.price;
  if(c.qty>1)h.innerHTML=`<p class="sub">Petunjuk: ini ${NUMW[c.qty]} kelompok koin. Hitung semuanya!</p>`+Array(c.qty).fill(`<div class="coins">${coins(p)}</div>`).join('');
  else h.innerHTML=`<p class="sub">Petunjuk: ada 10 koin, ${p} koin dipakai bayar. Sisanya berapa?</p><div class="coins">${coins(10,p)}</div>`}
@@ -737,11 +737,11 @@ const ORD='AIUEOBMKSTLNPDGRHJC'.split('');
 function genHuruf(L){const M=L<=25,p=pL(),pool=M?ORD.slice(0,6+Math.round(p*13)):AL,no=M?(p<.5?3:4):4,out=[];
  const ws=shuffle(M?WORDS.filter(w=>pool.includes(w.w[0])):(p>.5?WORDS.filter(w=>w.w.length>=5):WORDS));
  for(let i=0;i<6;i++){const typ=M?(L<=3?'dengar':['dengar','awal'][i%2]):['tengah','pasangan','urutan','awal','dengar','tengah'][i],w=ws[i%ws.length];let q;
- if(typ==='dengar'){const a=pick(pool);q={prompt:'Dengarkan! Mana huruf yang disebut?',say:[`Mana huruf ${LN[a]}?`],board:`<button class="bd-say" data-say="Huruf ${LN[a]}" data-who="chira" aria-label="dengar lagi">🔊</button><div class="bd-small">Ketuk untuk dengar lagi</div>`,opts:mixL(a,pool,no),ans:a}}
+ if(typ==='dengar'){const a=pick(pool);q={prompt:'Dengarkan! Mana huruf yang disebut?',say:segOr(['Mana huruf',LN[a]],`Mana huruf ${LN[a]}?`),board:`<button class="bd-say" data-say="${segStr(['Huruf',LN[a]],'Huruf '+LN[a])}" data-who="chira" aria-label="dengar lagi">🔊</button><div class="bd-small">Ketuk untuk dengar lagi</div>`,opts:mixL(a,pool,no),ans:a}}
  if(typ==='awal'){const a=w.w[0];q={prompt:'Huruf apa di depan?',say:['Ini gambar',w.w,'Huruf apa di depannya?'],board:`<div class="bd-em">${w.e}</div><div class="bd-word"><span class="gap">?</span>${w.w.slice(1)}</div>`,opts:mixL(a,M?pool:AL,no),ans:a}}
  if(typ==='tengah'){const k=rand(1,w.w.length-1),a=w.w[k];q={prompt:'Huruf apa yang hilang?',say:'Lihat gambarnya. Huruf apa yang hilang?',board:`<div class="bd-em">${w.e}</div><div class="bd-word">${w.w.slice(0,k)}<span class="gap">?</span>${w.w.slice(k+1)}</div>`,opts:mixL(a,AL,4),ans:a}}
  if(typ==='pasangan'){const a=pick(AL);q={prompt:'Ini huruf kecil. Mana huruf besarnya?',say:'Ini huruf kecil. Mana huruf besarnya?',board:`<div class="bd-big">${a.toLowerCase()}</div>`,opts:mixL(a,p>.5?'BDPQMNWUVHKX'.split('').concat(a):AL,4),ans:a}}
- if(typ==='urutan'){const k=rand(2,24),a=AL[k];q={prompt:`Huruf apa sesudah ${AL[k-1]}?`,say:[`Huruf apa sesudah ${LN[AL[k-1]]}?`],board:`<div class="bd-word">${AL[k-2]} ${AL[k-1]} <span class="gap">?</span></div>`,opts:mixL(a,AL.slice(Math.max(0,k-4),k+5),4),ans:a}}
+ if(typ==='urutan'){const k=rand(2,24),a=AL[k];q={prompt:`Huruf apa sesudah ${AL[k-1]}?`,say:segOr(['Huruf apa sesudah',LN[AL[k-1]]],`Huruf apa sesudah ${LN[AL[k-1]]}?`),board:`<div class="bd-word">${AL[k-2]} ${AL[k-1]} <span class="gap">?</span></div>`,opts:mixL(a,AL.slice(Math.max(0,k-4),k+5),4),ans:a}}
  out.push({t:'choice',cls:'big',...q})}return out}
 function genKata(L){const M=L<=25,p=pL(),out=[],fmt=o=>o.syl.map((s,i)=>`<span class="s${i%2}">${s}</span>`).join('');
  const base=M?(p<.5?WORDS.filter(w=>w.syl.length===2):WORDS):(p<.35?WORDS.filter(w=>w.syl.length===2):p<.7?WORDS:WORDS.filter(w=>w.syl.length>=3).concat(WORDS.filter(w=>w.syl.length===2).slice(0,6)));
@@ -763,7 +763,7 @@ function genAngka(L){const M=L<=25,p=pL(),out=[],top=M?Math.min(20,3+L):0,nq=L%3
  if(typ==='tambah'){const mx=9+Math.round(p*40),a=rand(2,mx),b=rand(2,Math.min(mx,99-a));q={prompt:'Berapa hasilnya?',say:[String(a),'tambah',String(b),'berapa?'],board:`<div class="bd-big" style="font-size:clamp(40px,9vw,72px)">${a} + ${b}</div><div class="bd-word">= <span class="gap">?</span></div>`,opts:optsN(a+b,4,3,1),ans:a+b}}
  if(typ==='kurang'){const a=rand(8,15+Math.round(p*70)),b=rand(2,Math.min(9+Math.round(p*30),a-1));q={prompt:'Berapa hasilnya?',say:[String(a),'kurang',String(b),'berapa?'],board:`<div class="bd-big" style="font-size:clamp(40px,9vw,72px)">${a} − ${b}</div><div class="bd-word">= <span class="gap">?</span></div>`,opts:optsN(a-b,4,3,0),ans:a-b}}
  out.push({t:'choice',cls:'big',...q})}
- if(L%3===0){const max=M?10:20+Math.round(p*30)-(20+Math.round(p*30))%5;out.push({t:'rahasia',max,secret:rand(1,max),par:M?4:6,prompt:`Angka rahasia dari 1 sampai ${max}. Tebak!`,say:`Fathir punya angka rahasia dari satu sampai ${terbilang(max)}. Ayo tebak!`,board:`<div class="bd-big">?</div><div class="bd-small" id="hist">Tebak angka rahasiaku!</div>`})}
+ if(L%3===0){const max=M?10:20+Math.round(p*30)-(20+Math.round(p*30))%5;out.push({t:'rahasia',max,secret:rand(1,max),par:M?4:6,prompt:`Angka rahasia dari 1 sampai ${max}. Tebak!`,say:segOr(['Fathir punya angka rahasia dari satu sampai',terbilang(max),'Ayo tebak!'],`Fathir punya angka rahasia dari satu sampai ${terbilang(max)}. Ayo tebak!`),board:`<div class="bd-big">?</div><div class="bd-small" id="hist">Tebak angka rahasiaku!</div>`})}
  return out}
 function quiz(kind){stopAll();S.combo=0;S.mode='quiz';S.kind=kind;S.qi=0;S.today=0;S.phase='quiz';sceneMode('quiz');const M=S.lvl==='mudah';
  S.qs=(kind==='huruf'?genHuruf:kind==='kata'?genKata:genAngka)(S.L);const h=HOST[kind];showGuest(h,'happy',true);sfx.bell();const gt=`Halo! Aku ${P[h].n}. Ayo main ${QNAME[kind].toLowerCase()} bareng aku!`;bubble(gt,'guest',P[h].n);S.holdP=null;sayAfter(gt,h);qRender(400)}
@@ -784,10 +784,10 @@ function nextQ(){S.qi++;if(S.qi<S.qs.length)qRender();else levelDone(S.kind,[`${
 function startGame(k){if(k==='warung'){S.day=1;newDay()}else if(k==='tangkap')tangkap();else if(k==='kembar')kembar();else quiz(k)}
 function hostIntro(kind){stopAll();S.mode='quiz';S.kind=kind;S.qi=0;S.today=0;S.phase='quiz';S.combo=0;sceneMode('quiz');const h=HOST[kind];showGuest(h,'happy',true);sfx.bell();const gt=`Halo! Aku ${P[h].n}. Ayo main ${QNAME[kind].toLowerCase()} bareng aku!`;bubble(gt,'guest',P[h].n);S.holdP=null;sayAfter(gt,h)}
 function tangkap(){hostIntro('tangkap');const M=S.lvl==='mudah',p=pL(),R=3+(S.L>10)+(S.L>30),ids=shuffle(Object.keys(ING)).slice(0,R);S.qs=ids.map(id=>({id,n:M?rand(2,2+Math.min(3,Math.floor(S.L/6))):rand(3,4+Math.round(p*3)),c:0,bad:0}));hud();render('<p class="sub" style="text-align:center">Siap-siap...</p>');setTimeout(roundT,2800)}
-function roundT(){const q=S.qs[S.qi],M=S.lvl==='mudah',w=ING[q.id][1];hud();const sp=['Tangkap',NUMW[q.n],w].join(' ');
+function roundT(){const q=S.qs[S.qi],M=S.lvl==='mudah',w=ING[q.id][1];hud();const sp=['Tangkap',NUMW[q.n],w].join(' '),spS=segOr(['Tangkap',NUMW[q.n],w],sp+'!');
  board.innerHTML=`${M?`<div class="bd-em">${ING[q.id][0]}</div>`:''}<div class="bd-word">${M?q.n+' '+w:'TANGKAP '+NUMW[q.n]+' '+w}</div><div class="bd-big" id="tcount" style="font-size:44px">0 / ${M?q.n:NUMW[q.n]}</div>`;
- render(`<div class="dots">${S.qs.map((_,i)=>`<span class="${i<S.qi?'d':i===S.qi?'c':''}">${i<S.qi?'✓':i+1}</span>`).join('')}</div><h2>${M?'Tangkap':'TANGKAP'} <span class="nb">${M?q.n:NUMW[q.n]}</span> ${w}! ${sayB(sp+'!','rafa')}</h2><div class="field" id="field" aria-label="Geser keranjang ke kiri dan kanan"><div class="basket${M?' bigb':''}" id="basket">🧺${S.qi===0?'<span class="finger">👆</span>':''}</div></div><p class="sub" style="text-align:center;margin:6px 0 0">Geser keranjang ke kiri-kanan dengan jarimu. Jangan sampai bahan lain masuk!</p><p class="fb" id="fb"></p>`);
- afterTalk(()=>say(S.qi===0?[sp+'!','Geser keranjangnya, ya!']:sp+'!','rafa'),100);
+ render(`<div class="dots">${S.qs.map((_,i)=>`<span class="${i<S.qi?'d':i===S.qi?'c':''}">${i<S.qi?'✓':i+1}</span>`).join('')}</div><h2>${M?'Tangkap':'TANGKAP'} <span class="nb">${M?q.n:NUMW[q.n]}</span> ${w}! ${sayB(spS,'rafa')}</h2><div class="field" id="field" aria-label="Geser keranjang ke kiri dan kanan"><div class="basket${M?' bigb':''}" id="basket">🧺${S.qi===0?'<span class="finger">👆</span>':''}</div></div><p class="sub" style="text-align:center;margin:6px 0 0">Geser keranjang ke kiri-kanan dengan jarimu. Jangan sampai bahan lain masuk!</p><p class="fb" id="fb"></p>`);
+ afterTalk(()=>say(S.qi===0?[...[].concat(spS),'Geser keranjangnya, ya!']:spS,'rafa'),100);
  const f=$('#field'),bk=$('#basket');S.bx=S.bx||.5;const place=x=>{const W=f.clientWidth||300,h=bk.offsetWidth/2||40;x=Math.max(h,Math.min(W-h,x));bk.style.left=x+'px';S.bx=x/W};place(S.bx*(f.clientWidth||300));
  let drag=false;const mv=e=>{const r=f.getBoundingClientRect();place(e.clientX-r.left);const fg=bk.querySelector('.finger');if(fg)fg.remove()};
  f.addEventListener('pointerdown',e=>{drag=true;try{f.setPointerCapture(e.pointerId)}catch(x){}mv(e)});f.addEventListener('pointermove',e=>{if(drag||e.pointerType==='mouse')mv(e)});['pointerup','pointercancel'].forEach(v=>f.addEventListener(v,()=>drag=false));
@@ -861,7 +861,7 @@ const ACT={
  psave(){readParent();if(!RW.prizes.length){RW.prizes=DEFPRIZE.map(([e,n])=>({e,n}));saveRW()}toast('✅ Tersimpan');album()},
  pinreset(){RW.pin='';saveRW();gate(parentPage)},
  flip(v,b){flip(v,b)},
- openbox(v,b){const n=boxes();if(!n)return;lock();b.classList.remove('wob');b.classList.add('shakebox');[300,400,500,600].forEach((f,i)=>tone(f,.08,'triangle',i*.2));setTimeout(()=>{const pool=STK.filter(s=>!S.stk.includes(s.i)),s=pick(pool.length?pool:STK);if(!S.stk.includes(s.i))S.stk.push(s.i);S.opened++;store('stk',JSON.stringify(S.stk));store('opened',S.opened);sfx.win();confetti();$('#reveal').innerHTML=`<div class="rev"><span>${s.e}</span><b>${s.n}</b><small>Stiker baru!</small></div>`;say(`Wah, dapat stiker ${s.n}!`,'kanza');setTimeout(album,3200)},1300)},
+ openbox(v,b){const n=boxes();if(!n)return;lock();b.classList.remove('wob');b.classList.add('shakebox');[300,400,500,600].forEach((f,i)=>tone(f,.08,'triangle',i*.2));setTimeout(()=>{const pool=STK.filter(s=>!S.stk.includes(s.i)),s=pick(pool.length?pool:STK);if(!S.stk.includes(s.i))S.stk.push(s.i);S.opened++;store('stk',JSON.stringify(S.stk));store('opened',S.opened);sfx.win();confetti();$('#reveal').innerHTML=`<div class="rev"><span>${s.e}</span><b>${s.n}</b><small>Stiker baru!</small></div>`;say(segOr(['Wah, dapat stiker',s.n],`Wah, dapat stiker ${s.n}!`),'kanza');setTimeout(album,3200)},1300)},
  order(){orderSpeech()},
  greet(){homeGreet()},
  setlvl(v){S.age=v;store('lvl',v);sfx.pop();home()},
