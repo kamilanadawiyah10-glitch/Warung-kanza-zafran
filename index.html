@@ -370,6 +370,22 @@ h3{font-size:20px;margin:14px 0 6px}
 .tool-panci .pc,.tool-wajan .pc{width:38px;height:38px}
 .pile .pc.mass-w{left:-4%;top:-6%;width:108%;height:112%;transform:none}
 .liq.under{opacity:.15!important}
+/* ---- uang ---- */
+.wallet{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.mny{padding:0;position:relative;filter:drop-shadow(0 3px 2px rgba(0,0,0,.2));transition:transform .15s}
+.mny:active{transform:translateY(2px)}
+.mny.coin1{width:46px;height:46px}.mny.note{width:104px;height:50px}
+.mny svg{width:100%;height:100%;display:block}
+.mny.counted{transform:scale(1.06)}
+.mny.counted::after{content:attr(data-k);position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;border-radius:99px;min-width:24px;height:24px;padding:0 4px;font-size:13px;font-weight:800;display:grid;place-items:center}
+.sumline{font-size:20px;font-weight:800;margin:4px 0;text-align:center}.sumline b{color:var(--red);font-size:26px}
+.money.paid .mny{width:120px;height:58px;pointer-events:none}
+.tray{min-height:70px;border:3px dashed var(--soft);border-radius:18px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:rgba(255,255,255,.4)}
+.tray-empty{font-size:14px;color:var(--soft);font-weight:700}
+.laci{position:relative;margin:10px 0 4px;padding:22px 10px 12px;border-radius:16px;background:linear-gradient(#8d5a2b,#6d4220);box-shadow:inset 0 6px 10px rgba(0,0,0,.35),0 4px 0 #4a2b12;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.laci-label{position:absolute;top:2px;left:12px;font-size:12px;font-weight:800;color:#f5d7a9}
+button.mny,button.mny:focus{background:none!important;border:0!important;box-shadow:none!important;outline:none;border-radius:0;min-width:0;min-height:0}
+.money.paid{flex-wrap:nowrap;gap:6px}.money.paid .mny{width:96px;height:46px}.money.paid .price{font-size:20px;padding:6px 10px}
 @keyframes pop{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
 @keyframes walkin{from{transform:translateX(150%)}to{transform:none}}
 @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
@@ -446,7 +462,7 @@ const ARTDEFS=`<svg width="0" height="0" style="position:absolute" aria-hidden="
 <linearGradient id="gFish" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f9a9c"/><stop offset="1" stop-color="#4f5a5c"/></linearGradient>
 <linearGradient id="gFishF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2a24a"/><stop offset="1" stop-color="#8a4b14"/></linearGradient>
 <linearGradient id="gCuc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc36a"/><stop offset="1" stop-color="#2e7d32"/></linearGradient>
-<linearGradient id="gPlate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9e0e6"/></linearGradient>
+<radialGradient id="gCoin" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff6c4"/><stop offset=".55" stop-color="#e0b43a"/><stop offset="1" stop-color="#a77a12"/></radialGradient><linearGradient id="gPlate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9e0e6"/></linearGradient>
 <linearGradient id="gBowl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfdbe6"/><stop offset=".35" stop-color="#ffffff"/><stop offset="1" stop-color="#c3d1de"/></linearGradient>
 </defs></svg>`;
 const noodle=(x,y,w,c='#f4c542',sw=3)=>`<path d="M${x} ${y}q${w/8} -5 ${w/4} 0t${w/4} 0t${w/4} 0t${w/4} 0" fill="none" stroke="${c}" stroke-width="${sw}" stroke-linecap="round"/>`;
@@ -561,7 +577,8 @@ const vOf=w=>VK[w]||w||'kanza';
 const norm=t=>String(t).toLowerCase().replace(/\d+/g,d=>' '+terbilang(+d).toLowerCase()+' ').replace(/\s+/g,' ').replace(/\s+([.,!?])/g,'$1').trim();
 const hkey=s=>{let h=5381;for(const c of s)h=(Math.imul(h,33)+c.codePointAt(0))>>>0;return h.toString(36)};
 const clipId=(t,v)=>v+'_'+hkey(v+'|'+norm(t));
-const PACKS={};let RECD={};function pack(v){if(!PACKS[v]){PACKS[v]=fetch('v/'+v+'.json').then(r=>r.ok?r.json():{}).catch(()=>({}));if(v==='rec')PACKS[v].then(d=>RECD=d)}return PACKS[v]}
+const PACKS={};let RECD={};function pack(v){if(!PACKS[v]){PACKS[v]=(window.fetch?fetch('v/'+v+'.json'):Promise.reject()).then(r=>r.ok?r.json():{}).catch(()=>({}));if(v==='rec')PACKS[v].then(d=>RECD=d)}return PACKS[v]}
+function _unused(v){if(!PACKS[v]){PACKS[v]=fetch('v/'+v+'.json').then(r=>r.ok?r.json():{}).catch(()=>({}));if(v==='rec')PACKS[v].then(d=>RECD=d)}return PACKS[v]}
 const hasRec=t=>{const n=norm(t);if(RECD[n])return true;const m=n.match(/^(.+ puluh) (\S+)$/);return !!(m&&RECD[m[1]]&&RECD[m[2]])};const segStr=(segs,whole)=>[].concat(segOr(segs,whole)).join('|');const segOr=(segs,whole)=>segs.every(hasRec)?segs:[].concat(whole);
 pack('rec');
 const AU=new Audio();AU.preload='auto';let spGen=0,auTok=0;
@@ -717,13 +734,23 @@ function parentPage(){stopAll();S.mode='album';bubble(`Halo ${esc(RW.to)}! Atur 
  <div class="row"><button class="btn" data-act="psave">Simpan</button><button class="btn alt" data-act="pinreset">Ganti PIN</button><button class="btn alt" data-act="album">Kembali</button></div>`)}
 function readParent(){const pl=$('#rw-player'),to=$('#rw-to');if(pl)RW.player=pl.value.trim()||'Kanza';if(to)RW.to=to.value.trim()||'Bibi Kamila';
  const es=[...panel.querySelectorAll('.pe')],ns=[...panel.querySelectorAll('.pn2')];if(ns.length||panel.querySelector('#plist'))RW.prizes=ns.map((n,i)=>({e:es[i].value.trim()||'🎁',n:n.value.trim()})).filter(p=>p.n);saveRW()}
+/* ---------- uang ---------- */
+const NOTEC={2:'#8f9496',5:'#a0703f',10:'#8456c9',20:'#3c9a4e',50:'#1f7fd6'};
+function moneyEl(v,attrs=''){
+ if(v===1)return `<button class="mny coin1"${attrs} aria-label="seribu"><svg viewBox="0 0 60 60"><circle cx="30" cy="31" r="28" fill="#8a6408"/><circle cx="30" cy="29" r="28" fill="url(#gCoin)"/><circle cx="30" cy="29" r="21" fill="none" stroke="#a77a12" stroke-width="2"/><text x="30" y="34" text-anchor="middle" font-size="15" font-weight="800" fill="#6b4c00" font-family="Baloo 2,sans-serif">1000</text></svg></button>`;
+ const c=NOTEC[v],d=mix(c,'#000000',.3),l=mix(c,'#ffffff',.35);
+ return `<button class="mny note"${attrs} aria-label="${v} ribu"><svg viewBox="0 0 124 60"><rect x="2" y="3" width="120" height="55" rx="6" fill="${d}"/><rect x="2" y="1" width="120" height="55" rx="6" fill="${c}"/><path d="M2 40Q40 22 70 38T122 30V56H2Z" fill="${l}" opacity=".35"/><rect x="7" y="6" width="110" height="45" rx="4" fill="none" stroke="#fff" stroke-opacity=".5" stroke-dasharray="3 2"/><circle cx="32" cy="28" r="15" fill="#fff" opacity=".25"/><circle cx="32" cy="28" r="10" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/><text x="32" y="33" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="Baloo 2,sans-serif">${v}</text><text x="114" y="25" text-anchor="end" font-size="18" font-weight="800" fill="#fff" font-family="Baloo 2,sans-serif">${v}.000</text><text x="114" y="42" text-anchor="end" font-size="8" font-weight="700" fill="#fff" opacity=".9" font-family="Baloo 2,sans-serif">RUPIAH WARUNG</text></svg></button>`}
+function splitMoney(t,dens){const out=[];let r=t;while(r>0){const ok=dens.filter(d=>d<=r),d=Math.random()<.65?ok[0]:pick(ok);out.push(d);r-=d}return out.sort((a,b)=>b-a)}
+const moneyRow=(arr,act)=>`<div class="wallet">${arr.map(v=>moneyEl(v,` data-act="${act}" data-v="${v}"`)).join('')}</div>`;
+function priceFor(c){const L=S.L;if(L<=25){const hi=Math.min(12,3+Math.floor((L-1)*9/24));return rand(Math.max(1,hi-4),hi)}const p=pL(),hi=Math.min(Math.floor(25/c.qty),12+Math.round(p*13)),lo=Math.min(hi,5+Math.round(p*8));return rand(lo,hi)}
+function drawTray(){const c=S.q[S.i],t=$('#tray');if(!t)return;const sum=c.given.reduce((a,b)=>a+b,0);t.innerHTML=c.given.length?c.given.map((v,i)=>moneyEl(v,` data-act="ungive" data-v="${i}"`)).join(''):'<span class="tray-empty">Ketuk uang di laci untuk mengambil kembalian</span>';$('#givesum').textContent=sum}
 /* ---------- warung ---------- */
 function hearts(c){const step=(S.lvl==='mudah'?32000:28000)-pL()*6000;return Math.max(1,5-Math.floor((Date.now()-c.t0)/step))}
 function startPatience(c){clearInterval(S.pt);c.t0=Date.now();const draw=()=>{const h=hearts(c);$('#hearts').innerHTML='❤️'.repeat(h)+'🤍'.repeat(5-h)};draw();S.pt=setInterval(draw,1000)}
 function newDay(){stopAll();S.combo=0;S.mode='warung';sceneMode('warung');setCooks();S.today=0;const cs=shuffle(CUST).slice(0,S.n);let ds=[];while(ds.length<S.n)ds=ds.concat(shuffle(DISH));
  S.q=cs.map((g,i)=>({g,d:ds[i]}));S.i=0;S.earn=[];S.last=0;nextGuest()}
 function nextGuest(){S.phase='order';S.tries=0;const c=S.q[S.i],M=S.lvl==='mudah',nm=P[c.g].n;startPatience(c);
- const p=pL();c.qty=M?1:rand(1,p>.5?3:2);c.rec=shuffle(c.d.ing).slice(0,3).map(id=>[id,M?rand(1,Math.min(5,2+Math.floor(S.L/6))):rand(2,Math.min(8,4+Math.floor(p*4)))]);c.pot=[];
+ const p=pL();c.qty=M?1:rand(1,p>.5?3:2);c.price=priceFor(c);c.rec=shuffle(c.d.ing).slice(0,3).map(id=>[id,M?rand(1,Math.min(5,2+Math.floor(S.L/6))):rand(2,Math.min(8,4+Math.floor(p*4)))]);c.pot=[];
  showGuest(c.g,'happy',true);hud();sfx.bell();
  const q=c.qty>1?`<span class="syl qn" data-say="${NUMW[c.qty]}">${NUMW[c.qty]}</span> porsi `:'';
  bubble(`Halo Kanza! Aku ${nm}. Aku mau pesan ${q}${sylHTML(c.d)} <button class="say" data-act="order" aria-label="Dengarkan pesanan">🔊</button>`,'guest',nm);
@@ -819,26 +846,33 @@ function checkPot(){const c=S.q[S.i],M=S.lvl==='mudah',t=c.k.tool,cnt={};c.pot.f
  return null}
 function ready(){const c=S.q[S.i];sfx.win();showGuest(c.g,'happy');bubble('Wah, wanginya enak sekali!','guest',P[c.g].n);setTimeout(()=>say([{t:`${c.d.name} siap!`,who:'kanza',pause:300},{t:'Wah, wanginya enak sekali!',who:c.g}]),300);
  render(`<div class="ready"><div class="plate2">${DISHART(c.d.id)}<span class="steam s1"></span><span class="steam s2"></span><span class="steam s3"></span></div><h2>${c.d.name} siap!${c.qty>1?` (${NUMW[c.qty]} porsi)`:''}</h2><button class="btn" data-act="serve">Sajikan ke ${P[c.g].n} 🍽️</button></div>`);}
-function pay(){S.phase='pay';S.tries=0;const c=S.q[S.i],M=S.lvl==='mudah',p=c.d.price,nm=P[c.g].n;c.tot=p*c.qty;sfx.nyam();showGuest(c.g,'happy');let s,cl;
- if(M){c.ans=c.tot;cl='Nyam, enak! Ini uangnya, Kanza.';s=[`Harga ${c.d.name} ${p} ribu.`,...segOr(['Hitung koin dari',nm],`Hitung koin dari ${nm}.`),hasRec('Satu koin seribu. Ketuk satu per satu, ya!')?'Satu koin seribu. Ketuk satu per satu, ya!':'Satu koin seribu.'];bubble(cl,'guest',nm);
-  render(`<h2>Harga ${c.d.name} ${p} ribu ${sayB(s,'kanza')}</h2><p class="sub">Hitung koin dari ${nm}. Satu koin = <b>seribu</b>. Ketuk koinnya satu per satu!</p><div class="coins">${coins(c.tot)}</div><h3>Ada berapa koin?</h3>${choices(c.tot)}<p class="fb" id="fb"></p>`)}
- else if(c.qty>1){c.ans=c.tot;cl=`Nyam, enak! Aku beli ${NUMW[c.qty]} porsi. Jadi berapa, Kanza?`;s=[`Harga satu porsi ${c.d.name} ${p} ribu.`,...segOr([nm,`beli ${NUMW[c.qty]} porsi.`],`${nm} beli ${NUMW[c.qty]} porsi.`),'Berapa ribu semuanya?'];bubble(cl,'guest',nm);
-  render(`<h2>Harga 1 porsi ${c.d.name} = ${p} ribu ${sayB(s,'kanza')}</h2><p class="sub">${nm} beli <b>${NUMW[c.qty]}</b> porsi. Berapa ribu semuanya?</p><div class="money"><span class="price">${Array(c.qty).fill(p+' ribu').join(' + ')}</span><span>=</span><span class="qbox">?</span></div><div id="hintbox"></div>${choices(c.tot,'ribu')}<p class="fb" id="fb"></p>`)}
- else{c.ans=10-p;cl='Nyam, enak! Ini uangku sepuluh ribu, ya.';s=[`Harga ${c.d.name} ${p} ribu.`,...segOr([nm,'bayar pakai uang sepuluh ribu.'],`${nm} bayar pakai uang sepuluh ribu.`),'Berapa kembaliannya?'];bubble(cl,'guest',nm);
-  render(`<h2>Harga ${c.d.name} ${p} ribu ${sayB(s,'kanza')}</h2><p class="sub">${nm} bayar pakai uang <b>10 ribu</b>. Berapa kembaliannya?</p><div class="money"><div class="note">10.000</div><span>−</span><span class="price">${p} ribu</span><span>=</span><span class="qbox">?</span></div><div id="hintbox"></div>${choices(10-p,'ribu')}<p class="fb" id="fb"></p>`)}
- clearTimeout(sayT0);sayT0=setTimeout(()=>say([...[].concat(c.qty>1&&S.lvl!=='mudah'?segOr(['Nyam, enak!',`Aku beli ${NUMW[c.qty]} porsi.`,'Jadi berapa, Kanza?'],cl):cl).map((t,i,a)=>({t,who:c.g,pause:i===a.length-1?350:120})),...s.map(t=>({t,who:'kanza'}))]),300)}
-function payHint(){const c=S.q[S.i],h=$('#hintbox');if(!h)return;const p=c.d.price;
- if(c.qty>1)h.innerHTML=`<p class="sub">Petunjuk: ini ${NUMW[c.qty]} kelompok koin. Hitung semuanya!</p>`+Array(c.qty).fill(`<div class="coins">${coins(p)}</div>`).join('');
- else h.innerHTML=`<p class="sub">Petunjuk: ada 10 koin, ${p} koin dipakai bayar. Sisanya berapa?</p><div class="coins">${coins(10,p)}</div>`}
+function pay(){S.phase='pay';S.tries=0;S.cc=0;const c=S.q[S.i],L=S.L,p=c.price,nm=P[c.g].n,dn=c.d.name;c.tot=p*c.qty;sfx.nyam();showGuest(c.g,'happy');
+ const mode=c.qty>1?'total':L<=8?'count':L<=17?'sum':'change';c.mode=mode;
+ const harga=[`Harga ${dn.toLowerCase()}`,String(p),'ribu.'];let s,cl,clS,body;
+ if(mode==='count'){c.ans=c.tot;cl='Nyam, enak! Ini uangnya, Kanza.';clS=[cl];s=[...harga,'Hitung koin dari',nm,'Satu koin seribu. Ketuk satu per satu, ya!'];
+  body=`<p class="sub">Uang dari ${nm}. Satu koin = <b>seribu</b>. Ketuk satu per satu!</p>${moneyRow(Array(c.tot).fill(1),'coin')}<h3>Ada berapa ribu?</h3>${choices(c.tot,'ribu')}`}
+ else if(mode==='sum'){c.ans=c.tot;cl='Nyam, enak! Ini uangnya, Kanza.';clS=[cl];s=[...harga,'Hitung koin dari',nm,'Berapa ribu semuanya?'];
+  body=`<p class="sub">Uang dari ${nm}. Ketuk uangnya satu per satu untuk menjumlahkan!</p>${moneyRow(splitMoney(c.tot,L<=12?[2,1]:[5,2,1]),'msum')}<p class="sumline">Jumlah: <b id="msum">0</b> ribu</p><h3>Berapa ribu semuanya?</h3>${choices(c.tot,'ribu')}`}
+ else if(mode==='total'){c.ans=c.tot;cl=`Nyam, enak! Aku beli ${NUMW[c.qty]} porsi. Jadi berapa, Kanza?`;clS=segOr(['Nyam, enak!',`Aku beli ${NUMW[c.qty]} porsi.`,'Jadi berapa, Kanza?'],cl);s=[`Harga satu porsi ${dn.toLowerCase()}`,String(p),'ribu.',nm,`beli ${NUMW[c.qty]} porsi.`,'Berapa ribu semuanya?'];
+  body=`<p class="sub">${nm} beli <b>${NUMW[c.qty]}</b> porsi. Berapa ribu semuanya?</p><div class="money"><span class="price">${Array(c.qty).fill(p+' ribu').join(' + ')}</span><span>=</span><span class="qbox">?</span></div><div id="hintbox"></div>${choices(c.tot,'ribu')}`}
+ else{const note=[5,10,20,50].find(v=>v>c.tot);c.note=note;c.ans=note-c.tot;c.given=[];cl=`Nyam, enak! Ini uangku ${note} ribu, ya.`;clS=['Nyam, enak!','Ini uangku',String(note),'ribu, ya.'];s=[...harga,nm,'bayar pakai uang',String(note),'ribu.','Berapa kembaliannya?'];
+  body=`<p class="sub">${nm} bayar <b>${note} ribu</b>, harganya <b>${c.tot} ribu</b>. Ambil kembaliannya dari laci!</p><div class="money paid">${moneyEl(note)}<span>−</span><span class="price">${c.tot} ribu</span><span>=</span><span class="qbox">?</span></div>
+  <div class="tray" id="tray"></div><p class="sumline">Kembalian: <b id="givesum">0</b> ribu</p><div class="laci"><span class="laci-label">Laci kasir</span>${[1,2,5,10,20].filter(v=>v<note).map(v=>moneyEl(v,` data-act="give" data-v="${v}"`)).join('')}</div><div id="hintbox"></div><div class="row"><button class="btn" data-act="givego">Berikan kembalian ✔</button></div>`}
+ bubble(cl,'guest',nm);
+ render(`<h2>Harga ${dn} ${p} ribu ${sayB(s,'kanza')}</h2>${body}<p class="fb" id="fb"></p>`);if(mode==='change')drawTray();
+ afterTalk(()=>say([...[].concat(clS).map((t,i,a)=>({t,who:c.g,pause:i===a.length-1?350:120})),...s.map(t=>({t,who:'kanza'}))]),300)}
+function payHint(){const c=S.q[S.i],h=$('#hintbox');if(!h)return;const p=c.price;
+ if(c.mode==='total')h.innerHTML=`<p class="sub">Petunjuk: ini ${NUMW[c.qty]} kelompok koin. Hitung semuanya!</p>`+Array(c.qty).fill(`<div class="coins">${coins(p)}</div>`).join('');
+ else if(c.mode==='change')h.innerHTML=`<p class="sub">Petunjuk: ada ${c.note} koin seribuan, ${c.tot} dipakai bayar. Sisanya berapa?</p><div class="coins">${coins(c.note,c.tot)}</div>`}
 function paid(){const c=S.q[S.i],nm=P[c.g].n,tip=hearts(c)>=3;clearInterval(S.pt);S.pt=0;S.earn.push(c.tot);fb(tip?`Betul! ${nm} kasih tip! +1 ★`:'Betul! Hebat!','good');if(tip){bubble('Ini tip buat kamu, Kanza!','guest',nm);setTimeout(addStar,600)}S.holdP=null;sayAfter([...(tip?[{t:'Ini tip buat kamu, Kanza!',who:c.g,pause:250}]:[]),...segOr(['Betul! Terima kasih. Datang lagi, ya!'],['Betul!',`Terima kasih, ${nm}.`,'Datang lagi, ya!'])],'kanza');setTimeout(()=>{$('#hearts').innerHTML='';
  bubble(`Terima kasih, ${nm}! Datang lagi, ya.`,'cook','Kanza');guestEl.classList.add('leave');
- setTimeout(()=>{S.i++;const left=S.q.length-S.i;if(left===0||(S.i-S.last>=3&&left>=2))bibi();else nextGuest()},800)},900)}
+ setTimeout(()=>{S.i++;const left=S.q.length-S.i;if(left===0||(S.lvl==='mudah'?(S.i-S.last>=3&&left>=2):S.i-S.last>=2))bibi();else nextGuest()},800)},900)}
 function bibi(){S.phase='bibi';S.tries=0;hud();const M=S.lvl==='mudah',grp=S.q.slice(S.last,S.i),e=S.earn.slice(S.last,S.i);S.bibiAns=e.reduce((a,b)=>a+b,0);
  showGuest('kamila','happy',true);sfx.bell();
  bubble(S.last===0?'Kanza! Bibi datang menagih uang jualan, ya.':'Bibi datang lagi! Setor uangnya, Kanza.','guest','Bibi Kamila');
  const s=[S.last===0?'Halo Kanza, ini Bibi Kamila.':'Bibi datang lagi, Kanza.','Tadi dapat',...e.flatMap((x,i)=>i?['tambah',String(x)]:[String(x)]),'ribu.','Berapa semuanya?'];autoSay(s,'kamila');
  render(`<h2>Setor uang ke Bibi Kamila ${sayB(s,'kamila')}</h2><p class="sub">Uang dari ${grp.length} pembeli${M?'. Ketuk koinnya untuk menghitung!':':'}</p>
- <div class="earn">${grp.map((c,i)=>`<div class="eg"><div class="eh">${av(c.g)}<b>${P[c.g].n}</b><span>${e[i]} ribu</span></div>${M?`<div class="coins">${coins(e[i])}</div>`:''}</div>`).join('')}</div>
+ <div class="earn">${grp.map((c,i)=>`<div class="eg"><div class="eh">${av(c.g)}<b>${P[c.g].n}</b><span>${e[i]} ribu</span></div>${M?(S.L<=8?moneyRow(Array(e[i]).fill(1),'coin'):moneyRow(splitMoney(e[i],[5,2,1]),'msum')):''}</div>`).join('')}</div>${M&&S.L>8?'<p class="sumline">Jumlah: <b id="msum">0</b> ribu</p>':''}
  <h3>${e.join(' + ')} = ? ribu</h3>${choices(S.bibiAns,'ribu')}<p class="fb" id="fb"></p>`)}
 function bibiDone(){S.last=S.i;const t=`Hebat, Kanza! Uangnya pas ${S.bibiAns} ribu. Terima kasih sudah jujur!`;bubble(t,'guest','Bibi Kamila');S.holdP=null;sayAfter(['Hebat, Kanza! Uangnya pas',String(S.bibiAns),'ribu.','Terima kasih sudah jujur!'],'kamila');
  if(S.i<S.q.length)setTimeout(()=>{guestEl.classList.add('leave');setTimeout(nextGuest,800)},2600);
@@ -951,7 +985,7 @@ function voiceManifest(){const out=new Map(),add=(t,w)=>{const v=vOf(w);out.set(
  WORDS.forEach(w=>{add(w.w,'chira');w.syl.forEach(s=>add(s,'chira'))});
  ['Ada berapa? Ketuk satu per satu, ya!','Mana angka','Mana angka yang lebih besar?','Baca tulisannya. Angka berapa?','Lihat polanya. Angka berapa yang hilang?','tambah','kurang','berapa?','Lebih besar dari','Lebih kecil dari'].forEach(t=>add(t,'fathir'));
  for(let n=0;n<=10;n++)add(`Angka ${terbilang(n)}`,'fathir');nums('fathir',0,100);[10,20,25,30,35,40,45,50].forEach(m=>add(`Fathir punya angka rahasia dari satu sampai ${terbilang(m)}. Ayo tebak!`,'fathir'));
- add('Pilih permainan yang kamu suka!','kanza');add('Pilih level, ya!','kanza');add('Halo! Aku Kanza.','kanza');add('Aku Zafran.','zafran');add('Mau main apa hari ini?','kanza');add('Ayo buka hadiahnya!','kanza');add('Kumpulkan bintang, nanti dapat hadiah!','kanza');add('Gosok kartunya!','kanza');add('Setiap','kanza');add('bintang, kamu dapat kartu gosok hadiah!','kanza');
+ add('Pilih permainan yang kamu suka!','kanza');add('Pilih level, ya!','kanza');DISH.forEach(d=>{add('Harga '+d.name.toLowerCase(),'kanza');add('Harga satu porsi '+d.name.toLowerCase(),'kanza')});['bayar pakai uang','ribu.','Hitung koin dari','masih kurang','kebanyakan','Hitung lagi, ya!','Berapa ribu semuanya?','Satu koin seribu. Ketuk satu per satu, ya!'].forEach(t=>add(t,'kanza'));nums('kanza',0,60);kids.forEach(v=>['Nyam, enak!','Ini uangku','ribu, ya.','Aku beli dua porsi.','Aku beli tiga porsi.','Jadi berapa, Kanza?'].forEach(t=>add(t,v)));add('Halo! Aku Kanza.','kanza');add('Aku Zafran.','zafran');add('Mau main apa hari ini?','kanza');add('Ayo buka hadiahnya!','kanza');add('Kumpulkan bintang, nanti dapat hadiah!','kanza');add('Gosok kartunya!','kanza');add('Setiap','kanza');add('bintang, kamu dapat kartu gosok hadiah!','kanza');
  ['Hore! Kamu dapat','Tunjukkan ke Bibi Kamila, ya!','Tunjukkan kuponnya, ya!',...DEFPRIZE.map(p=>p[1])].forEach(t=>add(t,'kamila'));for(let L=1;L<=MAXL;L++)add(`Level ${L} selesai!`,'kanza');['Tiga bintang! Hebat sekali!','Dua bintang! Bagus!','Satu bintang! Ayo coba lagi biar dapat tiga!'].forEach(t=>add(t,'kanza'));add('Angka','fathir');add('Buka kotak kejutan untuk dapat stiker!','kanza');STK.forEach(s=>{add(s.n,'kanza');add(`Wah, dapat stiker ${s.n}!`,'kanza')});
  kids.forEach(v=>add('Ini tip buat kamu, Kanza!',v));
  Object.values(ING).forEach(([e,w])=>{add(w,'rafa');for(let n=2;n<=8;n++)add(`Tangkap ${NUMW[n]} ${w}!`,'rafa')});add('Itu','rafa');add('Geser keranjangnya, ya!','rafa');
@@ -1007,6 +1041,11 @@ const ACT={
   clearInterval(S.tm);S.tm=0;loopStop();if(st.p<=st.b){c.k.fried=true;c.k.stuff[c.k.tool]=['lele'];drawStuff();nextStep('Lelenya kuning keemasan!')}else burnt()},
  serve(){pay()},
  coin(v,b){if(b.dataset.k)return;S.cc++;b.dataset.k=S.cc;b.classList.add('counted');sfx.pop();cnt(S.cc,S.mode==='quiz'?HOST[S.kind]:'kanza')},
+ msum(v,b){if(b.dataset.k)return;S.cc+=+v;b.dataset.k=S.cc;b.classList.add('counted');sfx.pop();const m=$('#msum');if(m)m.textContent=S.cc;cnt(S.cc,'kanza')},
+ give(v){const c=S.q[S.i];if(c.given.length>=20)return;c.given.push(+v);sfx.cash();drawTray();cnt(c.given.reduce((a,b)=>a+b,0),'kanza')},
+ ungive(v){const c=S.q[S.i];c.given.splice(+v,1);tone(400,.08,'triangle');drawTray()},
+ givego(){const c=S.q[S.i],sum=c.given.reduce((a,b)=>a+b,0);if(sum===c.ans){sfx.cash();star(S.tries===0);lock();paid();return}
+  wrong(null);S.tries++;const less=sum<c.ans,t=less?'Kembaliannya masih kurang. Hitung lagi, ya!':'Kembaliannya kebanyakan. Hitung lagi, ya!';fb(t,'bad');say([less?'masih kurang':'kebanyakan','Hitung lagi, ya!'],'kanza');if(S.tries>=2)payHint()},
  bcount(v,b){if(b.dataset.k)return;S.cc++;b.dataset.k=S.cc;b.classList.add('counted');sfx.pop();cnt(S.cc,S.mode==='quiz'?HOST[S.kind]:'kanza')},
  ans(v,b){const bib=S.phase==='bibi',a=bib?S.bibiAns:S.q[S.i].ans;
   if(+v===a){sfx.cash();star(S.tries===0);b.classList.add('right');lock();bib?bibiDone():paid()}
