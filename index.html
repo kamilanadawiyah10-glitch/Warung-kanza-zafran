@@ -292,7 +292,7 @@ const $=s=>document.querySelector(s),panel=$('#panel'),bub=$('#bubble'),guestEl=
 const rand=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),pick=a=>a[rand(0,a.length-1)];
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rand(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
 const NUMW=['NOL','SATU','DUA','TIGA','EMPAT','LIMA','ENAM','TUJUH','DELAPAN','SEMBILAN','SEPULUH'];
-function terbilang(n){const s=['','SATU','DUA','TIGA','EMPAT','LIMA','ENAM','TUJUH','DELAPAN','SEMBILAN'];if(n===0)return'NOL';if(n<10)return s[n];if(n===10)return'SEPULUH';if(n===11)return'SEBELAS';if(n<20)return s[n-10]+' BELAS';if(n<100){const t=Math.floor(n/10),u=n%10;return(t===1?'SE':s[t]+' ')+'PULUH'+(u?' '+s[u]:'')}return String(n)}
+function terbilang(n){const s=['','SATU','DUA','TIGA','EMPAT','LIMA','ENAM','TUJUH','DELAPAN','SEMBILAN'];if(n===0)return'NOL';if(n<10)return s[n];if(n===10)return'SEPULUH';if(n===11)return'SEBELAS';if(n<20)return s[n-10]+' BELAS';if(n===100)return'SERATUS';if(n<100){const t=Math.floor(n/10),u=n%10;return(t===1?'SE':s[t]+' ')+'PULUH'+(u?' '+s[u]:'')}return String(n)}
 const ING={mie:['🍜','MIE'],bakso:['🧆','BAKSO'],sawi:['🥬','SAWI'],bawang:['🧅','BAWANG'],ayam:['🍗','AYAM'],jamur:['🍄','JAMUR'],nasi:['🍚','NASI'],telur:['🥚','TELUR'],cabai:['🌶️','CABAI'],lele:['🐟','LELE'],timun:['🥒','TIMUN'],tomat:['🍅','TOMAT']};
 const DISH=[
  {id:'bakso',name:'BAKSO',syl:[['BAK','SO']],icon:'🍲',price:5,ing:['bakso','mie','sawi','bawang']},
@@ -380,14 +380,14 @@ const PACKS={};function pack(v){if(!PACKS[v])PACKS[v]=fetch('v/'+v+'.json').then
 const AU=new Audio();AU.preload='auto';let spGen=0,auTok=0;
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const SILENT='data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQxAADB8AhSmxhIIEVCSiJrDCQBTcu3UrAIwUdkRgQbFAZC1CQEwTJ9mjRvBA4UOLD8nKVOWfh+UlK3z/177OXrfOdKl7pyn3Xf//WreyTRUoAWgBgkOAGbZHBgG1OF6zM82DWbZaUmMBptgQhGjsyYqc9ae9XFz280948NMBWInljyzsNRFLPWdnZGWrddDsjK1unuSrVN9jJsK8KuQtQCtMBjCEtImISdNKJOopIpBFpNSMbIHCSRpRR5iakjTiyzLhchUUBwCgyKiweBv/7UsQbg8isVNoMPMjAAAA0gAAABEVFGmgqK////9bP/6XCykxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
-function unlockAudio(){try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}try{AU.src=SILENT;const p=AU.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}['kanza','zafran','girl','boy','bibi'].forEach(pack)}
+function unlockAudio(){try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}try{AU.src=SILENT;const p=AU.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}['rec','kanza','zafran','girl','boy','bibi'].forEach(pack)}
 function stopVoice(){auTok++;try{AU.pause()}catch(e){}try{speechSynthesis.cancel()}catch(e){}}
 function playData(d){return new Promise(res=>{const tok=++auTok;let done=false;const fin=()=>{if(done)return;done=true;clearTimeout(t);if(auTok===tok){AU.onended=AU.onerror=null}res()};const t=setTimeout(fin,9000);AU.onended=fin;AU.onerror=fin;try{AU.src='data:audio/mpeg;base64,'+d;const p=AU.play();if(p&&p.catch)p.catch(fin)}catch(e){fin()}})}
 function ttsSpeak(it){return new Promise(res=>{if(!window.speechSynthesis)return res(wait(300+String(it.t).length*45));let done=false;const fin=()=>{if(!done){done=true;clearTimeout(t);res()}};const t=setTimeout(fin,1800+String(it.t).length*130);try{const u=new SpeechSynthesisUtterance(norm(it.t));u.lang=VOICE?VOICE.lang:'id-ID';if(VOICE)u.voice=VOICE;u.rate=.92;u.pitch=1.3;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}})}
 const clearHi=()=>document.querySelectorAll('.lt.on,.wd.on').forEach(e=>e.classList.remove('on'));
 async function speakSeq(items){const g=++spGen;stopVoice();duck(true);
  for(const it of items){if(g!==spGen)return;clearHi();[].concat(it.el||[]).forEach(e=>e&&e.classList.add('on'));
-  if(snd){const v=vOf(it.who),p=await pack(v);if(g!==spGen)return;const d=p[clipId(it.t,v)];if(d)await playData(d);else await ttsSpeak(it)}
+  if(snd){const v=vOf(it.who),p=await pack(v),rc=await pack('rec');if(g!==spGen)return;const d=rc[norm(it.t)]||p[clipId(it.t,v)];if(d)await playData(d);else await ttsSpeak(it)}
   else await wait(380+String(it.t).length*45);
   if(g!==spGen)return;await wait(it.pause==null?80:it.pause)}
  clearHi();duck(false)}
