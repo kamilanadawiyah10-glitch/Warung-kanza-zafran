@@ -492,8 +492,9 @@ const sayB=(t,who)=>`<button class="say" data-say="${[].concat(t).join('|')}"${w
 const QNAME={huruf:'Tebak Huruf',kata:'Tebak Kata',angka:'Tebak Angka',tangkap:'Tangkap Bahan',kembar:'Kartu Kembar'},HOST={huruf:'chira',kata:'zeya',angka:'fathir',tangkap:'rafa',kembar:'nayla'};
 const STK='KUCING🐱,ANJING🐶,PANDA🐼,KELINCI🐰,RUBAH🦊,KOALA🐨,SINGA🦁,HARIMAU🐯,PINGUIN🐧,LUMBA-LUMBA🐬,PAUS🐳,GURITA🐙,KUPU-KUPU🦋,KEPIK🐞,DINOSAURUS🦕,NAGA🐉,UNIKORN🦄,ROKET🚀,PELANGI🌈,BINTANG⭐,BULAN🌙,MATAHARI🌞,ES KRIM🍦,DONAT🍩,PERMEN🍬,KUE ULANG TAHUN🎂,MOBIL BALAP🏎️,KERETA🚂,ROBOT🤖,MAHKOTA👑'.split(',').map((s,i)=>{const m=s.match(/^([A-Z -]+)(.+)$/);return{i,n:m[1],e:m[2]}});
 const DECOR=[{s:10,id:'lampu',n:'lampu hias',e:'💡'},{s:20,id:'tanaman',n:'tanaman',e:'🪴'},{s:35,id:'balon',n:'balon',e:'🎈'},{s:50,id:'bendera',n:'bendera',e:'🚩'},{s:70,id:'tenda',n:'tenda emas',e:'⛺'},{s:90,id:'topi',n:'topi koki emas',e:'👑'}];
-const DEFPRIZE=[['🍫','Cokelat'],['🍦','Es krim'],['🍬','Permen'],['💵','Jajan 5 ribu'],['🧸','Mainan kecil'],['🛝','Main ke taman'],['🤗','Pelukan besar'],['🍽️','Pilih menu makan']];
+const DEFPRIZE=[['🍫','Cokelat'],['🍦','Es krim'],['🍬','Permen'],['💵','Jajan 5 ribu'],['🧸','Mainan kecil'],['🛝','Jalan-jalan ke taman'],['🤗','Pelukan besar'],['🍽️','Pilih menu makan']];
 const RW=Object.assign({every:10,to:'Bibi Kamila',player:'Kanza',prizes:DEFPRIZE.map(([e,n])=>({e,n})),pin:'',used:0,coupons:[],card:null},JSON.parse(load('rw')||'{}'));
+RW.prizes.forEach(p=>{if(p.n==='Main ke taman')p.n='Jalan-jalan ke taman'});
 const saveRW=()=>store('rw',JSON.stringify(RW));
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cards=()=>Math.max(0,Math.floor(S.stars/RW.every)-RW.used);
@@ -695,8 +696,8 @@ function checkPot(){const c=S.q[S.i],M=S.lvl==='mudah',t=c.k.tool,cnt={};c.pot.f
  const extra=Object.keys(cnt).find(id=>!c.rec.some(r=>r[0]===id));
  if(extra){const w=ING[extra][1];return[`Ups! ${w} tidak ada di resep. Ketuk ${w} di ${t} untuk mengeluarkannya.`,['Ups!',w,`tidak ada di resep. Keluarkan dari ${t}, ya!`]]}
  for(const [id,n] of c.rec){const h=cnt[id]||0,w=ING[id][1];
-  if(h<n)return M?[`${w} masih kurang ${n-h}.`,[w,'masih kurang',String(n-h)]]:[`${w} masih kurang. Hitung lagi!`,[w,'masih kurang. Hitung lagi!']];
-  if(h>n)return M?[`${w} kebanyakan ${h-n}. Keluarkan dari ${t}.`,[w,'kebanyakan',String(h-n),`Keluarkan dari ${t}, ya!`]]:[`${w} kebanyakan. Hitung lagi!`,[w,'kebanyakan. Hitung lagi!']]}
+  if(h<n)return M?[`${w} masih kurang ${n-h}.`,[w,'masih kurang',String(n-h)]]:[`${w} masih kurang. Hitung lagi!`,segOr([w,'masih kurang','Hitung lagi, ya!'],[w,'masih kurang. Hitung lagi!'])];
+  if(h>n)return M?[`${w} kebanyakan ${h-n}. Keluarkan dari ${t}.`,[w,'kebanyakan',String(h-n),`Keluarkan dari ${t}, ya!`]]:[`${w} kebanyakan. Hitung lagi!`,segOr([w,'kebanyakan','Hitung lagi, ya!'],[w,'kebanyakan. Hitung lagi!'])]}
  return null}
 function ready(){const c=S.q[S.i];sfx.win();showGuest(c.g,'happy');bubble('Wah, wanginya enak sekali!','guest',P[c.g].n);setTimeout(()=>say([{t:`${c.d.name} siap!`,who:'kanza',pause:300},{t:'Wah, wanginya enak sekali!',who:c.g}]),300);
  render(`<div class="ready"><div class="plate">${c.d.icon}</div><h2>${c.d.name} siap!${c.qty>1?` (${NUMW[c.qty]} porsi)`:''}</h2><button class="btn" data-act="serve">Sajikan ke ${P[c.g].n} 🍽️</button></div>`);}
