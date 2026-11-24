@@ -477,7 +477,8 @@ async function speakSeq(items){const g=++spGen;stopVoice();duck(true);
   else await wait(380+String(it.t).length*45);
   if(g!==spGen)return;await wait(it.pause==null?80:it.pause)}
  clearHi();duck(false)}
-function say(x,who){if(!snd)return;speakSeq([].concat(x).map(s=>s&&typeof s==='object'?s:{t:String(s),who}))}
+function splitNum(it){const n=norm(it.t),m=n.match(/^(.+ puluh) (\S+)$/);return !RECD[n]&&m&&RECD[m[1]]&&RECD[m[2]]?[{...it,t:m[1],pause:30},{...it,t:m[2]}]:[it]}
+function say(x,who){if(!snd)return;speakSeq([].concat(x).map(s=>s&&typeof s==='object'?s:{t:String(s),who}).flatMap(splitNum))}
 const ctxWho=()=>S.mode==='quiz'?HOST[S.kind]:S.phase==='order'&&S.q[S.i]?S.q[S.i].g:S.phase==='cook'?'zafran':S.phase==='bibi'?'kamila':'kanza';
 const cnt=(n,who)=>say(String(n),who||ctxWho());
 let sayT0=0;const autoSay=(t,who)=>{clearTimeout(sayT0);sayT0=setTimeout(()=>say(t,who),350)};
