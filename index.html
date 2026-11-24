@@ -386,6 +386,8 @@ h3{font-size:20px;margin:14px 0 6px}
 .laci-label{position:absolute;top:2px;left:12px;font-size:12px;font-weight:800;color:#f5d7a9}
 button.mny,button.mny:focus{background:none!important;border:0!important;box-shadow:none!important;outline:none;border-radius:0;min-width:0;min-height:0}
 .money.paid{flex-wrap:nowrap;gap:6px}.money.paid .mny{width:96px;height:46px}.money.paid .price{font-size:20px;padding:6px 10px}
+.btn.danger{background:#e63946;color:#fff;box-shadow:0 5px 0 #a4232d}
+.chk{display:flex;gap:10px;align-items:center;font-weight:700;margin:10px 0;font-size:16px}.chk input{width:22px;height:22px}
 @keyframes pop{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
 @keyframes walkin{from{transform:translateX(150%)}to{transform:none}}
 @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
@@ -731,7 +733,15 @@ function parentPage(){stopAll();S.mode='album';bubble(`Halo ${esc(RW.to)}! Atur 
  <h3>Daftar hadiah (dipilih acak)</h3><div id="plist">${RW.prizes.map((p,i)=>`<div class="prow"><input class="pe" data-i="${i}" value="${esc(p.e)}" maxlength="4" aria-label="ikon"><input class="pn2" data-i="${i}" value="${esc(p.n)}" maxlength="30" aria-label="nama hadiah"><button class="pdel" data-act="pdel" data-v="${i}" aria-label="hapus">✕</button></div>`).join('')}</div>
  <div class="row" style="justify-content:flex-start"><button class="btn alt" data-act="padd">+ Tambah hadiah</button></div>
  <h3>Semua kupon</h3>${RW.coupons.length?`<div class="cplist">${RW.coupons.map(x=>`<button class="cp${x.used?' used':''}" data-act="coupon" data-v="${x.id}"><span>${esc(x.e)}</span><b>${esc(x.n)}</b><small>${x.used?'✅ ditukar':'belum ditukar'} · ${x.code}</small></button>`).join('')}</div>`:'<p class="sub">Belum ada kupon.</p>'}
- <div class="row"><button class="btn" data-act="psave">Simpan</button><button class="btn alt" data-act="pinreset">Ganti PIN</button><button class="btn alt" data-act="album">Kembali</button></div>`)}
+ <div class="row"><button class="btn" data-act="psave">Simpan</button><button class="btn alt" data-act="pinreset">Ganti PIN</button><button class="btn alt" data-act="album">Kembali</button></div>
+ <h3>🔄 Reset game</h3><p class="sub">Mulai lagi dari awal: level, bintang, stiker dan hiasan warung kembali kosong.</p>
+ <div class="row" style="justify-content:flex-start"><button class="btn danger" data-act="resetask">Reset game…</button></div>`)}
+function resetPage(){render(`<h2>🔄 Reset game?</h2>
+ <p class="sub">Yang akan dihapus: semua level yang sudah selesai, <b>${S.stars} bintang</b>, <b>${S.stk.length} stiker</b>, hiasan warung, dan kartu gosok yang belum dibuka.</p>
+ <p class="sub">Yang tetap disimpan: nama anak, daftar hadiah, PIN, dan suara.</p>
+ <label class="chk"><input type="checkbox" id="rs-cp"> Hapus juga semua kupon hadiah (${RW.coupons.length})</label>
+ <p class="sub"><b>Reset tidak bisa dibatalkan.</b></p>
+ <div class="row"><button class="btn danger" data-act="resetgo">Ya, reset sekarang</button><button class="btn alt" data-act="resetno">Batal</button></div>`)}
 function readParent(){const pl=$('#rw-player'),to=$('#rw-to');if(pl)RW.player=pl.value.trim()||'Kanza';if(to)RW.to=to.value.trim()||'Bibi Kamila';
  const es=[...panel.querySelectorAll('.pe')],ns=[...panel.querySelectorAll('.pn2')];if(ns.length||panel.querySelector('#plist'))RW.prizes=ns.map((n,i)=>({e:es[i].value.trim()||'🎁',n:n.value.trim()})).filter(p=>p.n);saveRW()}
 /* ---------- uang ---------- */
@@ -814,7 +824,7 @@ function stepRender(){const c=S.q[S.i],k=c.k,st=c.steps[c.si],M=S.lvl==='mudah';
  if(st.t==='hold')bindHold(st);
  if(st.t==='stir')bindStir();
  if(st.t==='fry')startFry(st)}
-function nextStep(msg){const c=S.q[S.i];loopStop();const ch=$('#chef');if(ch){ch.classList.remove('dance');void ch.offsetWidth;ch.classList.add('dance')}sfx.ok();fb(msg,'good');sayAfter(msg,'zafran');lock();setTimeout(()=>{c.si++;if(c.si<c.steps.length)stepRender();else{star(S.tries===0);ready()}},1200)}
+function nextStep(msg){const c=S.q[S.i];if(S.phase!=='cook'||c.nx===c.si||c.si>=c.steps.length)return;c.nx=c.si;loopStop();const ch=$('#chef');if(ch){ch.classList.remove('dance');void ch.offsetWidth;ch.classList.add('dance')}sfx.ok();fb(msg,'good');sayAfter(msg,'zafran');lock();setTimeout(()=>{c.si++;if(c.si<c.steps.length)stepRender();else{star(S.tries===0);ready()}},1200)}
 function bindHold(st){const b=$('#holdb'),f=$('#barf'),oil=st.liq==='minyak',stop=()=>{clearInterval(S.tm);S.tm=0;loopStop()};let tick=0;
  const step=d=>{st.p=Math.min(100,st.p+d);f.style.width=st.p+'%';setBubbles(Math.floor(st.p/12));if(!oil&&st.p>30&&tick++%3===0)sfx.bubble();if(st.p>=100){stop();nextStep(st.done)}};
  b.addEventListener('pointerdown',e=>{e.preventDefault();if(S.tm||st.p>=100)return;if(oil)loopStart(3200,'highpass',.035);else tone(140,.3,'sine',0,.06);S.tm=setInterval(()=>step(2.5),50)});
@@ -844,7 +854,7 @@ function checkPot(){const c=S.q[S.i],M=S.lvl==='mudah',t=c.k.tool,cnt={};c.pot.f
   if(h<n)return M?[`${w} masih kurang ${n-h}.`,[w,'masih kurang',String(n-h)]]:[`${w} masih kurang. Hitung lagi!`,segOr([w,'masih kurang','Hitung lagi, ya!'],[w,'masih kurang. Hitung lagi!'])];
   if(h>n)return M?[`${w} kebanyakan ${h-n}. Keluarkan dari ${t}.`,[w,'kebanyakan',String(h-n)]]:[`${w} kebanyakan. Hitung lagi!`,segOr([w,'kebanyakan','Hitung lagi, ya!'],[w,'kebanyakan. Hitung lagi!'])]}
  return null}
-function ready(){const c=S.q[S.i];sfx.win();showGuest(c.g,'happy');bubble('Wah, wanginya enak sekali!','guest',P[c.g].n);setTimeout(()=>say([{t:`${c.d.name} siap!`,who:'kanza',pause:300},{t:'Wah, wanginya enak sekali!',who:c.g}]),300);
+function ready(){const c=S.q[S.i];sfx.win();showGuest(c.g,'happy');bubble('Wah, wanginya enak sekali!','guest',P[c.g].n);afterTalk(()=>say([{t:`${c.d.name} siap!`,who:'kanza',pause:300},{t:'Wah, wanginya enak sekali!',who:c.g}]),300);
  render(`<div class="ready"><div class="plate2">${DISHART(c.d.id)}<span class="steam s1"></span><span class="steam s2"></span><span class="steam s3"></span></div><h2>${c.d.name} siap!${c.qty>1?` (${NUMW[c.qty]} porsi)`:''}</h2><button class="btn" data-act="serve">Sajikan ke ${P[c.g].n} 🍽️</button></div>`);}
 function pay(){S.phase='pay';S.tries=0;S.cc=0;const c=S.q[S.i],L=S.L,p=c.price,nm=P[c.g].n,dn=c.d.name;c.tot=p*c.qty;sfx.nyam();showGuest(c.g,'happy');
  const mode=c.qty>1?'total':L<=8?'count':L<=17?'sum':'change';c.mode=mode;
@@ -1008,6 +1018,10 @@ const ACT={
  padd(){readParent();RW.prizes.push({e:'🎁',n:'Hadiah baru'});saveRW();parentPage()},
  pdel(v){readParent();RW.prizes.splice(+v,1);saveRW();parentPage()},
  psave(){readParent();if(!RW.prizes.length){RW.prizes=DEFPRIZE.map(([e,n])=>({e,n}));saveRW()}toast('✅ Tersimpan');album()},
+ resetask(){readParent();saveRW();resetPage()},
+ resetno(){parentPage()},
+ resetgo(){const cp=$('#rs-cp')?.checked;['prog','stars','stk','opened'].forEach(k=>{try{localStorage.removeItem('wkz_'+k)}catch(e){}});
+  RW.used=0;RW.card=null;if(cp)RW.coupons=[];saveRW();toast('✅ Game sudah direset');setTimeout(()=>location.reload(),900)},
  pinreset(){RW.pin='';saveRW();gate(parentPage)},
  flip(v,b){flip(v,b)},
  openbox(v,b){const n=boxes();if(!n)return;lock();b.classList.remove('wob');b.classList.add('shakebox');[300,400,500,600].forEach((f,i)=>tone(f,.08,'triangle',i*.2));setTimeout(()=>{const pool=STK.filter(s=>!S.stk.includes(s.i)),s=pick(pool.length?pool:STK);if(!S.stk.includes(s.i))S.stk.push(s.i);S.opened++;store('stk',JSON.stringify(S.stk));store('opened',S.opened);sfx.win();confetti();$('#reveal').innerHTML=`<div class="rev"><span>${s.e}</span><b>${s.n}</b><small>Stiker baru!</small></div>`;say(segOr(['Wah, dapat stiker',s.n],`Wah, dapat stiker ${s.n}!`),'kanza');setTimeout(album,3200)},1300)},
