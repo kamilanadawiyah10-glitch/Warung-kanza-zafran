@@ -448,7 +448,7 @@ function home(){stopAll();S.mode='home';S.phase='home';sceneMode('warung');setCo
  <h2>Pilih permainan ${sayB('Pilih permainan yang kamu suka!','kanza')}</h2>
  <div class="games">${Object.entries(GAMES).map(([k,G])=>`<button class="card gm ${G.c}" data-act="map" data-v="${k}"><span class="big">${G.e}</span><b>${G.n}</b><small>Level ${openMax(k)}/${MAXL} · ★ ${starsOf(k)}</small></button>`).join('')}</div>
  <h3>Para pemain</h3><div class="cast">${Object.keys(P).map(k=>`<div class="mini">${av(k)}<b>${P[k].n}</b><small>${P[k].role}</small></div>`).join('')}</div>
- <p class="credit">Suara dibuat dengan Piper TTS (MIT), model Indonesia id_ID-news_tts dari data INDspeech News TTS (CC BY-NC-SA 4.0). Huruf: Baloo 2 (SIL OFL). Gratis, bukan untuk dijual.</p>`)}
+ <p class="credit">Suara dibuat dengan Coqui TTS (MPL 2.0) dan model Indonesian TTS oleh Wikidepia (khusus non-komersial). Huruf: Baloo 2 (SIL OFL). Gratis, bukan untuk dijual.</p>`)}
 function album(){stopAll();S.mode='album';S.phase='album';sceneMode('warung');setCooks();guestEl.innerHTML='';$('#prog').textContent='Hadiah';applyDecor();const n=boxes();
  {const t=n||cards()?'Ayo buka hadiahnya!':'Kumpulkan bintang, nanti dapat hadiah!';bubble(t,'cook','Kanza');say(t,'kanza')}
  const c=cards(),open=RW.coupons.filter(x=>!x.used);
