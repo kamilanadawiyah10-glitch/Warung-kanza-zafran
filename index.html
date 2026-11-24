@@ -694,7 +694,7 @@ function burnt(){loopStop();S.tries++;sfx.no();fb('Yah, gosong! Ayo goreng lagi.
 function checkPot(){const c=S.q[S.i],M=S.lvl==='mudah',t=c.k.tool,cnt={};c.pot.forEach(id=>cnt[id]=(cnt[id]||0)+1);
  if(!c.pot.length)return['Masih kosong. Masukkan bahan dulu, ya!',['Masih kosong. Masukkan bahan dulu, ya!']];
  const extra=Object.keys(cnt).find(id=>!c.rec.some(r=>r[0]===id));
- if(extra){const w=ING[extra][1];return[`Ups! ${w} tidak ada di resep. Ketuk ${w} di ${t} untuk mengeluarkannya.`,['Ups!',w,`tidak ada di resep. Keluarkan dari ${t}, ya!`]]}
+ if(extra){const w=ING[extra][1];return[`Ups! ${w} tidak ada di resep. Ketuk ${w} di ${t} untuk mengeluarkannya.`,segOr(['Ups! Itu tidak ada di resep.'],['Ups!',w,`tidak ada di resep. Keluarkan dari ${t}, ya!`])]}
  for(const [id,n] of c.rec){const h=cnt[id]||0,w=ING[id][1];
   if(h<n)return M?[`${w} masih kurang ${n-h}.`,[w,'masih kurang',String(n-h)]]:[`${w} masih kurang. Hitung lagi!`,segOr([w,'masih kurang','Hitung lagi, ya!'],[w,'masih kurang. Hitung lagi!'])];
   if(h>n)return M?[`${w} kebanyakan ${h-n}. Keluarkan dari ${t}.`,[w,'kebanyakan',String(h-n),`Keluarkan dari ${t}, ya!`]]:[`${w} kebanyakan. Hitung lagi!`,segOr([w,'kebanyakan','Hitung lagi, ya!'],[w,'kebanyakan. Hitung lagi!'])]}
