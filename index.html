@@ -774,7 +774,7 @@ function stationHTML(){const c=S.q[S.i],k=c.k,t=k.tool,st=c.steps[c.si],stove=t=
  +(plated?`<div class="cw plated" id="cw">${DISHART(k.plated)}<span class="pile top" id="pile"></span></div>`
   :`<div class="cw tool-${t}" id="cw"><i class="rim"><span class="liq ${lq}${lq?' full':''}"><span id="bubs"></span></span><span class="pile" id="pile"></span></i><div class="spoon2" id="spoon">${t==='wajan'?'<svg viewBox="0 0 80 80"><path d="M74 4L40 44" stroke="#8a5a2e" stroke-width="6" stroke-linecap="round"/><path d="M42 40L22 52L14 66L30 64L46 50Z" fill="#9aa5ab" stroke="#6c777d" stroke-width="2"/><path d="M24 56l12-8" stroke="#fff" stroke-opacity=".5" stroke-width="2"/></svg>':'<svg viewBox="0 0 80 80"><path d="M74 4L32 50" stroke="#8d9aa1" stroke-width="5" stroke-linecap="round"/><path d="M74 4L32 50" stroke="#e3e9ec" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="25" cy="56" rx="15" ry="9" fill="#b9c6cd" stroke="#7c8b93" stroke-width="2"/><ellipse cx="22" cy="54" rx="6" ry="3" fill="#fff" opacity=".6"/></svg>'}</div></div>`)
  +(stove?`<div class="flames${k.fire?' on':''}" id="flames"><i></i><i></i><i></i><i></i><i></i></div><div class="stove"><div class="stove-top"></div><div class="stove-front"><span class="brand">KOMPOR</span><span class="knob2"></span><button class="knob${k.fire?' on':''}" id="knob" data-act="knob" aria-label="Tombol kompor"></button></div></div>`:'<div class="table"></div>')}
-function drawStuff(anim){const c=S.q[S.i],k=c.k,st=c.steps[c.si],t=k.tool,pile=$('#pile');
+function drawStuff(anim){const c=S.q[S.i];if(!c||!c.k)return;const k=c.k,st=c.steps[c.si]||{},t=k.tool,pile=$('#pile');
  const pid=id=>id==='lele'&&k.fried?'g:leleGoreng':id;
  if(pile){const items=k.stuff[t]||[],n=items.length,mix=t==='wajan'?(k.mix[t]||0):0,ang=k.ang[t]||0;
   let h=k.mass[t]?`<i class="pc mass-w" style="filter:brightness(${1-.1*k.kec})">${MASSVIEW(k.mass[t])}</i>`:'';
@@ -1027,7 +1027,7 @@ const ACT={
  unpot(v){S.q[S.i].pot.splice(+v,1);tone(400,.08,'triangle');drawStuff()},
  cookgo(){const m=checkPot();if(m){sfx.no();S.tries++;fb(m[0],'bad');say(m[1],'zafran');return}
   const c=S.q[S.i],st=c.steps[c.si],k=c.k,t=k.tool;lock();flyToPot(()=>{k.stuff[t]=[...(k.stuff[t]||[]),...c.pot];c.pot=[];if(st.liq2)k.liq[t]=st.liq2;
-   if(t==='piring'&&c.d.id==='pecel'){k.plated='pecel';k.stuff[t]=[];$('#station').innerHTML=stationHTML()}else{const l=$('#cw .liq');if(l&&st.liq2)l.className='liq full '+st.liq2}
+   if(t==='piring'&&c.d.id==='pecel'){k.plated='pecel';k.stuff[t]=[];const se=$('#station');if(se)se.innerHTML=stationHTML()}else{const l=$('#cw .liq');if(l&&st.liq2)l.className='liq full '+st.liq2}
    drawStuff(true);nextStep('Bahannya pas!')})},
  knob(){if(S.phase!=='cook')return;const c=S.q[S.i],st=c.steps[c.si];if(st.t!=='fire'||c.k.fire)return;c.k.fire=true;const kb=$('#knob');kb.classList.remove('hint');kb.classList.add('on');$('#flames').classList.add('on');sfx.fire();nextStep('Apinya menyala!')},
  stirtap(){stirOne()},
